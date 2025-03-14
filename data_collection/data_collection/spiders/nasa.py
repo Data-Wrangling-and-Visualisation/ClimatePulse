@@ -1,7 +1,12 @@
-import scrapy
+import scrapy # type: ignore
 import json
 from urllib.parse import urljoin
 from collections import defaultdict
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+from config.get_path import get_root_directory
+
 
 class NasaClimateSpider(scrapy.Spider):
     name = 'nasa_spider'
@@ -31,12 +36,14 @@ class NasaClimateSpider(scrapy.Spider):
         stats = defaultdict()
         for entry in data:
             year = entry.get('x')
-            indicator = entry.get('y')
+            indicator = float(entry.get('y'))
             if year and indicator:
                 stats[year] = indicator
 
         self.merged_data[vital_sign] = stats
 
     def closed(self, reason):
-        with open('./data_collection/spiders/nasa_data.json', 'w') as f:
+        root = get_root_directory()
+        target_path = root + '/data/nasa_data.json'
+        with open(target_path, 'w') as f:
             json.dump(self.merged_data, f, indent=4)
