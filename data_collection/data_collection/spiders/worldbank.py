@@ -12,8 +12,12 @@ class WorldBankSpider(scrapy.Spider):
         except:
             return 0
 
+    total_pages = get_total() # all the data sources have the same amount of pages
     start_urls = [
-        f"https://api.worldbank.org/v2/country/all/indicator/EN.GHG.CO2.MT.CE.AR5?format=json&per_page={get_total()}"
+        f"https://api.worldbank.org/v2/country/all/indicator/EN.GHG.CO2.MT.CE.AR5?format=json&per_page={total_pages}",
+        f"https://api.worldbank.org/v2/country/all/indicator/AG.LND.FRST.ZS?format=json&per_page={total_pages}",
+        f"https://api.worldbank.org/v2/country/all/indicator/EN.ATM.PM25.MC.M3?format=json&per_page={total_pages}",
+        f"https://api.worldbank.org/v2/country/all/indicator/EG.FEC.RNEW.ZS?format=json&per_page={total_pages}"
     ]
 
     def parse(self, response):
@@ -23,5 +27,6 @@ class WorldBankSpider(scrapy.Spider):
                 yield {
                     "country": entry["country"]["value"],
                     "year": entry["date"],
-                    "co2_emissions": float(entry["value"])
+                    "meaning": entry["indicator"]["value"],
+                    "value": float(entry["value"])
                 }
