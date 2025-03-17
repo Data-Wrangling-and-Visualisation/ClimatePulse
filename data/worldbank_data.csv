@@ -1,4 +1,4 @@
-country,year,Carbon_dioxide_CO2_emissions_total_excluding_LULUCF_Mt_CO2e,Forest_area_%_of_land_area,"PM2.5_air_pollution,_mean_annual_exposure_micrograms_per_cubic_meter",Renewable_energy_consumption_%_of_total_final_energy_consumption
+country,year,carbon_dioxide,forests_ratio,air_pollution,renewable_energy_ratio
 Afghanistan,1970,1.7339,,,
 Afghanistan,1971,1.7337,,,
 Afghanistan,1972,1.6936,,,
