@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from utils.data_loader import ClimateDataLoader
-from utils.metric_mapper import get_metric_name, get_available_metrics
+from utils.metric_mapper import get_metric_name, get_available_metrics, get_nasa_metric_name
 
 app = Flask(__name__)
 CORS(app)
@@ -16,11 +16,34 @@ def list_metrics():
 
 @app.route('/api/nasa', methods=['GET'])
 def nasa_data():
-    return jsonify(loader.load_nasa_data())
+    return jsonify(loader.nasa_data)
+
+@app.route('/api/nasa/<metric_key>', methods=['GET'])
+def nasa_metric_data(metric_key):
+    return jsonify(loader.get_global_data_by_metric(metric_key))
 
 @app.route('/api/countries', methods=['GET'])
 def country_list():
-    return jsonify(loader.load_country_metadata())
+    return jsonify(loader.country_metadata)
+
+@app.route('/api/wb', methods=['GET'])
+def nasa_data():
+    return jsonify(loader.wb_data)
+
+@app.route('/api/wb/metric', methods=['GET'])
+def wb_metric(metric, country=False):
+    return jsonify(loader.get_local_data_by_metric(metric, country))
+
+@app.route('/api/wb/country', methods=['GET'])
+def wb_country(country, metric=False):
+    return jsonify(loader.get_local_data_by_country(country, metric))
+
+@app.route('/api/wb/metric', methods=['GET'])
+def wb_country_top_by_metric(limit=10, metric='renewable'):
+    countries_data = loader.get_local_data_by_metric(metric)
+    top = {}
+    for country, stats in countries_data.items() 
+
 
 @app.route('/api/top/<metric_key>', methods=['GET'])
 def top_countries(metric_key):
@@ -48,6 +71,8 @@ def country_metrics(country_code):
         'country_data': wb
     })
 
+
+# compute average for each country for last 10 years, and select top
 @app.route('/api/renewable-energy', methods=['GET'])
 def renewable_energy():
     metric = "Renewable energy consumption (% of total final energy consumption)"
