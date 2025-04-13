@@ -4,7 +4,7 @@ class TemperatureChart {
     constructor(container, modalContainer) {
         this.container = container;
         this.modalContainer = modalContainer;
-        this.margin = { top: 20, right: 30, bottom: 40, left: 50 };
+        this.margin = { top: 60, right: 180, bottom: 50, left: 50 };
         this.width = 600 - this.margin.left - this.margin.right;
         this.height = 400 - this.margin.top - this.margin.bottom;
         this.data = null;
@@ -24,7 +24,7 @@ class TemperatureChart {
         
         const svg = d3.select(this.container)
             .append('svg')
-            .attr('width', this.width + this.margin.left + this.margin.right)
+            .attr('width', this.width + this.margin.left + this.margin.right - 150)
             .attr('height', this.height + this.margin.top + this.margin.bottom)
             .append('g')
             .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
@@ -75,8 +75,7 @@ class TemperatureChart {
             .attr('y', 0 - (this.margin.top / 2))
             .attr('text-anchor', 'middle')
             .style('font-size', '16px')
-            .style('font-weight', 'bold')
-            .text('Global Temperature Anomalies (1880-Present)');
+            .style('font-weight', 'bold');
             
         svg.append('path')
             .datum(lineData)
@@ -110,13 +109,35 @@ class TemperatureChart {
     }
     
     setupEventListeners() {
+        const controls = d3.select(this.container).node().parentNode;
+        const controlDiv = d3.select(controls).insert('div', ':first-child')
+            .attr('class', 'chart-controls');
+
+        if (this.countries.length > 0) {
+            controlDiv.append('label')
+                .text('Select Country: ')
+                .attr('for', 'country-select');
+
+            controlDiv.append('select')
+                .attr('id', 'country-select')
+                .on('change', (event) => {
+                    this.selectedCountry = event.target.value;
+                    this.loadCountryData(this.selectedCountry)
+                        .then(() => this.updateChart());
+                })
+                .selectAll('option')
+                .data(this.countries)
+                .enter().append('option')
+                .text(d => d)
+                .attr('value', d => d);
+        }
     }
     
     renderModalContent() {
-        this.modalContainer.selectAll('*').remove();
+        d3.select(this.container).selectAll('*').remove();
         
-        const modalWidth = this.modalContainer.node().clientWidth - this.margin.left - this.margin.right;
-        const modalHeight = 500 - this.margin.top - this.margin.bottom;
+        // const modalWidth = this.modalContainer.node().clientWidth - this.margin.left - this.margin.right;
+        // const modalHeight = 500 - this.margin.top - this.margin.bottom;
         
         const svg = this.modalContainer.append('svg')
             .attr('width', modalWidth + this.margin.left + this.margin.right)
@@ -170,8 +191,7 @@ class TemperatureChart {
             .attr('y', 0 - (this.margin.top / 2))
             .attr('text-anchor', 'middle')
             .style('font-size', '16px')
-            .style('font-weight', 'bold')
-            .text('Global Temperature Anomalies (1880-Present)');
+            .style('font-weight', 'bold');
             
         svg.append('path')
             .datum(lineData)
@@ -203,7 +223,7 @@ class TemperatureChart {
                     .style('opacity', 0);
             });
         
-        this.addTrendLine(svg, lineData, xScale, yScale, modalWidth, modalHeight);
+        // this.addTrendLine(svg, lineData, xScale, yScale, modalWidth, modalHeight);
     }
     
     addTrendLine(svg, data, xScale, yScale, width, height) {

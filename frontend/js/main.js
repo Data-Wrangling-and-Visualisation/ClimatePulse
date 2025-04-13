@@ -41,7 +41,7 @@ class ClimatePulseApp {
         switch (chartType) {
             case 'temperature':
                 modalTitle.textContent = 'Global Temperature Trends';
-                this.temperatureChart.renderModalContent();
+                this.temperatureChart.renderChart();
                 break;
             case 'co2':
                 modalTitle.textContent = 'CO₂ Emissions Analysis';
@@ -83,6 +83,25 @@ class ClimatePulseApp {
             e.preventDefault();
             alert('Thank you for your feedback!');
             e.target.reset();
+        });
+
+        document.querySelectorAll('.grid-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Don't trigger if clicking on the button itself
+                if (e.target.classList.contains('expand-btn')) return;
+                
+                const chartType = item.getAttribute('data-chart');
+                this.openChartModal(chartType);
+            });
+        });
+
+        // Add click handlers for expand buttons
+        document.querySelectorAll('.expand-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const chartType = btn.closest('.grid-item').getAttribute('data-chart');
+                this.openChartModal(chartType);
+            });
         });
     }
 }

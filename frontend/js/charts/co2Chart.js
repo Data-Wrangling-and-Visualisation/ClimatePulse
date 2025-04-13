@@ -101,8 +101,7 @@ class CO2Chart {
             .attr('y', 0 - (this.margin.top / 2))
             .attr('text-anchor', 'middle')
             .style('font-size', '16px')
-            .style('font-weight', 'bold')
-            .text('Atmospheric CO₂ Concentration (Global)');
+            .style('font-weight', 'bold');
 
         svg.append('path')
             .datum(lineData)
