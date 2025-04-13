@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClimatePulse - Global Climate Change Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <h1>ClimatePulse</h1>
+            <p>Visualizing the impact of climate change worldwide</p>
+        </div>
+    </header>
+
+    <nav class="main-nav">
+        <div class="container">
+            <button id="scrollTopBtn" class="nav-btn">↑ Top</button>
+            <button id="dataSourcesBtn" class="nav-btn">Data Sources</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section class="hero-section">
+            <div class="container">
+                <div class="hero-text">
+                    <h2>Understanding Our Changing Climate</h2>
+                    <p>Explore global climate trends through interactive visualizations that reveal the connections
+                        between human activity and environmental changes.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="visualization-grid container">
+            <h2>Explore Climate Data</h2>
+            <div class="grid-container">
+                <div class="grid-item" data-chart="temperature">
+                    <h3>Global Temperature Trends</h3>
+                    <div class="chart-placeholder"></div>
+                </div>
+                <div class="grid-item" data-chart="co2">
+                    <h3>CO₂ Emissions Analysis</h3>
+                    <div class="chart-placeholder"></div>
+                </div>
+                <div class="grid-item" data-chart="country">
+                    <h3>Country Statistics</h3>
+                    <div class="chart-placeholder"></div>
+                </div>
+                <div class="grid-item" data-chart="renewable">
+                    <h3>Renewable Energy Leaders</h3>
+                    <div class="chart-placeholder"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="globe-section">
+            <div class="container">
+                <h2>Global CO₂ Emissions</h2>
+                <div id="globe-container"></div>
+                <div class="globe-controls">
+                    <div class="legend">
+                        <span class="low">Low Emissions</span>
+                        <span class="high">High Emissions</span>
+                    </div>
+                    <div class="tooltip" id="globe-tooltip"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="project-info">
+                    <h3>ClimatePulse</h3>
+                    <p>A data visualization project exploring global climate change indicators.</p>
+                </div>
+                <div class="team-info">
+                    <h3>Project Team</h3>
+                    <ul>
+                        <li>Anastasia Pichugina</li>
+                        <li>Andrei Pavlov</li>
+                        <li>Anna Gromova</li>
+                    </ul>
+                </div>
+                <div class="contact-form">
+                    <h3>Feedback</h3>
+                    <form id="feedbackForm">
+                        <input type="email" placeholder="Your email" required>
+                        <textarea placeholder="Your feedback"></textarea>
+                        <button type="submit">Send</button>
+                    </form>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 ClimatePulse | <a href="https://github.com/Data-Wrangling-and-Visualisation/ClimatePulse/tree/main" target="_blank">GitHub
+                        Repository</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal" id="chartModal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle">Chart Title</h2>
+            </div>
+            <div class="modal-body">
+                <div id="modalChartContainer"></div>
+                <div class="chart-controls" id="modalControls"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script type="module" src="./js/main.js"></script>
+</body>
+
+</html>

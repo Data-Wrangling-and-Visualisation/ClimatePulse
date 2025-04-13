@@ -1,6 +1,6 @@
 import json
-from backend.config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
-from backend.utils.metric_mapper import get_metric_name, get_metric_key
+from config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
+from utils.metric_mapper import get_metric_name, get_metric_key, get_nasa_metric_name, get_available_metrics
 
 
 class ClimateDataLoader:
@@ -16,87 +16,128 @@ class ClimateDataLoader:
         with open(self.nasa_path) as f:
             data = json.load(f)
         self.nasa_data = {
-            'temperature': data.get('global-temperature', {}),
-            'ocean_warming': data.get('ocean-warming', {}),
+            'global-temperature': data.get('global-temperature', {}),
+            'ocean-warming': data.get('ocean-warming', {}),
             'methane': data.get('methane', {}), 
-            'co2': data.get('carbon-dioxide', {}),
-            'sea_level': data.get('sea-level', {}),
-            'arctic_sea_ice': data.get('arctic-sea-ice', {}), 
+            'carbon-dioxide': data.get('carbon-dioxide', {}),
+            'sea-level': data.get('sea-level', {}),
+            'arctic-sea-ice': data.get('arctic-sea-ice', {}), 
         }
-    
-    # def _process_nasa_metric(self, data, metric):
-    #     return [{'year': year, 'value': val} for year, val in data.get(metric, {}).items()]
-    # {'metric':[{'year':'', 'value':''},{},{},...], ...}
-    # global parameters
     
     def load_worldbank_data(self):
         with open(self.wb_path) as f:
-            data = json.load(f)
-        self.wb_data = data
-
-        country_centric = {}
-        metric_centric = {}
-        for entry in data:
-            country = entry['country']
-            metric = entry['meaning']
-            metric = get_metric_key(metric)
-            year = entry['year']
-            value = entry['value']
-            
-            if country and country not in country_centric:
-                country_centric[country] = {}
-            
-            if metric and metric not in country_centric[country]:
-                country_centric[country][metric] = {}
-
-            if metric and metric not in metric_centric:
-                metric_centric[metric] = {}
-            
-            if country and country not in metric_centric[metric]:
-                metric_centric[metric][country] = {}
-
-            metric_centric[metric][country][year] = value
-            country_centric[country][metric][year] = value
+            self.wb_raw_data = json.load(f)
         
-        self.wb_metric_data = metric_centric
-        self.wb_country_data = country_centric
-        return data
-    # [{'country':'US', 'year' : '', 'meaning' : 'some metric, convert to...', 'value' : float}, {}, {}, ...]
-    
+        self.wb_country_data = {}
+        self.wb_metric_data = {}
+        
+        for entry in self.wb_raw_data:
+            country = entry['country']
+            metric = get_metric_key(entry['meaning'])
+            year = entry['year']
+            value = float(entry['value']) if entry['value'] else None
+            
+            if value is None:
+                continue
+                
+            if country not in self.wb_country_data:
+                self.wb_country_data[country] = {}
+            if metric not in self.wb_country_data[country]:
+                self.wb_country_data[country][metric] = {}
+            self.wb_country_data[country][metric][year] = value
+            
+            if metric not in self.wb_metric_data:
+                self.wb_metric_data[metric] = {}
+            if country not in self.wb_metric_data[metric]:
+                self.wb_metric_data[metric][country] = {}
+            self.wb_metric_data[metric][country][year] = value
+            
     def load_country_metadata(self):
         with open(self.country_path) as f:
-            data = json.load(f)
-        self.country_metadata = data
+            raw_data = json.load(f)
+        self.country_metadata = {
+            country['name']: {
+                'code': country['id'],
+                'region': country['region']['value'],
+                'incomeLevel': country['incomeLevel']['value'],
+                'capital': country['capitalCity'],
+                'coordinates': {
+                    'longitude': float(country['longitude']),
+                    'latitude': float(country['latitude'])
+                } if country['longitude'] and country['latitude'] else None
+            }
+            for country in raw_data[0] if country['name']
+        }
         
 # data getters ========================================================================
-    def get_global_data_by_metric(self, metric) -> tuple[list[float], list[float]]:
-        temp_data = self.nasa_data.get(metric, {})
-        years = sorted(temp_data.keys())
-        vals = [round(temp_data[str(year)], 2) for year in years]
-        years = list(map(float, years))
-        return years, vals
+    def get_global_data_by_metric(self, metric):
+        metric_key = get_nasa_metric_name(metric)
+        data = self.nasa_data.get(metric_key, {})
 
-    
-    def get_local_data_by_country(self, country, metric=False):
+        years = [int(float(year)) for year in data.keys()]
+        values = list(data.values())
+
+        sorted_years_values = sorted(zip(years, values))
+        sorted_years, sorted_values = zip(*sorted_years_values)
+
+        return list(sorted_years), list(sorted_values)
+
+    def get_local_data_by_country(self, country, metric=None):
+        if country not in self.wb_country_data:
+            return None if metric else {}
+            
         if metric:
-            temp = self.wb_country_data[country][metric]
-            years = sorted(temp.keys())
-            vals = [temp[year] for year in years]
-            years = list(map(float, years))
-            return years, vals
+            metric_key = get_metric_key(metric)
+            if metric_key not in self.wb_country_data[country]:
+                return None, None
+                
+            years = sorted(self.wb_country_data[country][metric_key].keys())
+            values = [self.wb_country_data[country][metric_key][year] for year in years]
+            return years, values
         
         return self.wb_country_data[country]
 
-    def get_local_data_by_metric(self, metric, country=False):
+    def get_local_data_by_metric(self, metric, country=None):
+        metric_key = get_metric_key(metric)
+        if metric_key not in self.wb_metric_data:
+            return None if country else {}
+            
         if country:
-            temp = self.wb_metric_data[metric][country]
-            years = sorted(temp.keys())
-            vals = [temp[year] for year in years]
-            years = list(map(float, years))
-            return years, vals
+            if country not in self.wb_metric_data[metric_key]:
+                return None, None
+                
+            years = sorted(self.wb_metric_data[metric_key][country].keys())
+            values = [self.wb_metric_data[metric_key][country][year] for year in years]
+            return years, values
         
-        return self.wb_metric_data[metric]
+        return self.wb_metric_data[metric_key]
 
-dl = ClimateDataLoader()
-t = dl.get_local_data_by_metric('renewable')
-print(t)
+    def get_country_names(self):
+        return list(self.country_metadata.keys())
+
+    def get_top_countries_by_metric(self, metric, limit=10, ascending=False):
+        metric_key = get_metric_key(metric)
+        if metric_key not in self.wb_metric_data:
+            return []
+        
+        country_avgs = []
+        for country, years_data in self.wb_metric_data[metric_key].items():
+            values = list(years_data.values())
+            if values:
+                avg = sum(values) / len(values)
+                country_avgs.append((country, avg))
+        
+        country_avgs.sort(key=lambda x: x[1], reverse=not ascending)
+        
+        return [
+            {
+                'country': country,
+                'value': avg,
+                'metadata': self.country_metadata.get(country, {})
+            }
+            for country, avg in country_avgs[:limit]
+        ]
+
+# dl = ClimateDataLoader()
+# t = dl.get_local_data_by_metric('renewable')
+# print(t)
