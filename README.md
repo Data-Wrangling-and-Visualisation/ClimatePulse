@@ -1,7 +1,7 @@
 # Global Climate Change Insights: An Interactive Visualization of Environmental Data
 
 ## Repository Structure
-
+```
 ClimatePulse/
 ├── backend/                         # backend part:
 |   ├── \__init__.py                 # to form a module
@@ -65,7 +65,7 @@ ClimatePulse/
 ├── requirements.txt                  # python dependencies
 ├── server.py                         # to start the server
 └── start.sh                          # script used in Dockerfile
-
+```
 
 ## Project Description
 
