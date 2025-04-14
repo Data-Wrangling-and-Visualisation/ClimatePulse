@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"  # Backend
+      - "8000:8000"  # Main server
+    volumes:
+      - ./frontend:/app/frontend  # Live-reload for frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.http
+    ports:
+      - "8080:8000"
+    volumes:
+      - ./frontend:/var/www  # Directly mount to web root
