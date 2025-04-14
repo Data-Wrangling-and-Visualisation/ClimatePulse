@@ -1,5 +1,7 @@
 # Global Climate Change Insights: An Interactive Visualization of Environmental Data
 
+## Repository Structure
+
 ## Project Description
 
 ### Goal  
@@ -26,8 +28,6 @@ The application will tell the story of how climate change has evolved globally, 
 ### Data Sources  
 - **Primary Sources:**  
   - **NASA:** Historical temperature records, CO2 levels, and sea level rise.  
-  - **NOAA:** Natural disaster frequency and intensity (e.g., hurricanes, wildfires).  
-- **Secondary Source:**  
   - **World Bank Open Data:** Country-specific emissions and economic indicators.  
 
 ### Dataset Overview  
@@ -50,21 +50,13 @@ The application will tell the story of how climate change has evolved globally, 
 
 ### Proposed Visualizations  
 
-#### Panel 1 (Three.js):  
-1. **3D Globe:**  
-   - Displays temperature anomalies and CO2 levels by country.  
-   - Features: Zoom, hover tooltips, time slider.  
-2. **3D Bar Chart:**  
-   - Top 10 CO2-emitting countries with bars in 3D space.  
-3. **3D Heatmap:**  
-   - Overlay of natural disaster hotspots (toggle by disaster type).  
-
-#### Panel 2 (D3.js):  
-1. **Line Chart:** Global temperature anomalies over time (zoom/pan).  
-2. **Scatter Plot:** Correlation between CO2 emissions and temperature.  
-3. **Bar Chart:** Natural disaster frequency by type/region.  
+1. The Temperature Warming over the World plot.
+2. CO2 emissions plots: 1st plot - linechart with average global temperature growth, 2nd plot - linechart for a distinct country (option to choose a country) + shadowed kde plot of CO2 intercecting with shadowed kde plot of global temperature (they will intersect a lot to demonstred the correlation) 
+3. Global Statictics: the plot with ALL available metrics from both datasets per each country. The user must choose the country first, and then the plot will show him all metrics for the chosen country (yearly temperature, air pollution, percent of forests, etc.). + short summary (the co2 grows, air pollution grows, etc.) compute it after the plot generation
+4. Renewable Energy plots to see top countries: bar chart showing top 10 countries by renewable energy usage over the past 10 years. The user also can switch to the worst countries in this field, or check the value (average over last 10 year) of renewable energy ratio in his country.
+5. 3D globe which is covered with world countries map. Each country should be colored with different shades depending on how many CO2 emissions it produces. Hovering them we can see the exact value.
 
 ### Interactive Features  
-- **Linked Charts:** Selecting a country on the 3D globe updates D3.js charts.  
+- **Interactive Charts:** Points hovering allows to see more detailed information.
 - **Filtering:** By year, region, or variable.  
 - **Animations:** Smooth transitions during updates.  
