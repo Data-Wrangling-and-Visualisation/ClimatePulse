@@ -1,7 +1,7 @@
 import json
 from config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
 from utils.metric_mapper import get_metric_name, get_metric_key, get_nasa_metric_name, get_available_metrics
-
+from utils.train import predict_metrics
 
 class ClimateDataLoader:
     def __init__(self):
@@ -68,7 +68,22 @@ class ClimateDataLoader:
             }
             for country in raw_data[0] if country['name']
         }
-        
+
+    def load_predict_metrics(self, n_years):
+        with open(self.nasa_path, 'r') as f:
+            data = json.load(f)
+
+        rows = []
+        for metric, year_values in data.items():
+            for year_str, value in year_values.items():
+                rows.append({
+                    'metric': metric,
+                    'year': float(year_str),
+                    'value': float(value)
+                })
+        predictions = predict_metrics(int(n_years), rows)
+        self.predictions = predictions
+
 # data getters ========================================================================
     def get_global_data_by_metric(self, metric):
         metric_key = get_nasa_metric_name(metric)
@@ -137,6 +152,10 @@ class ClimateDataLoader:
             }
             for country, avg in country_avgs[:limit]
         ]
+
+    def get_predictions(self, n_years):
+        self.load_predict_metrics(n_years)
+        return self.predictions
 
 # dl = ClimateDataLoader()
 # t = dl.get_local_data_by_metric('renewable')
