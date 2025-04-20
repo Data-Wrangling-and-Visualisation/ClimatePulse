@@ -96,11 +96,11 @@ def top_countries(metric_key):
 @app.route('/api/country/<country_name>/metrics', methods=['GET'])
 def country_metrics(country_name):
     try:
-        # Get NASA global data
+        # NASA global data
         temp_years, temp_values = loader.get_global_data_by_metric('temperature')
         co2_years, co2_values = loader.get_global_data_by_metric('co2')
         
-        # Get country-specific data
+        # country-specific data
         country_data = loader.get_local_data_by_country(country_name)
         
         return jsonify({
@@ -123,14 +123,6 @@ def country_metrics(country_name):
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-# compute average for each country for last 10 years, and select top
-@app.route('/api/renewable-energy', methods=['GET'])
-def renewable_energy():
-    try:
-        results = loader.get_top_countries_by_metric('renewable', limit=10)
-        return jsonify(results)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
 
 
 @app.route('/api/predict/<n_years>', methods=['GET'])
