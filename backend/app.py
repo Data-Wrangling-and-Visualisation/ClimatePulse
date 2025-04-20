@@ -124,5 +124,14 @@ def country_metrics(country_name):
         return jsonify({'error': str(e)}), 400
 
 
+
+@app.route('/api/predict/<n_years>', methods=['GET'])
+def predict_endpoint(n_years):
+    try:
+        predictions = loader.get_predictions(n_years)
+        return jsonify(predictions)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
