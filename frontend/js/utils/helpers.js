@@ -14,12 +14,13 @@ function formatNumber(num) {
 }
 
 function getColorForValue(value, min, max) {
+    if (min === max) return 'rgb(0, 255, 0)'; // Handle single value case
     const normalized = (value - min) / (max - min);
     const r = Math.floor(255 * normalized);
     const g = Math.floor(255 * (1 - normalized));
-    const b = 0;
-    return `rgb(${r}, ${g}, ${b})`;
+    return `rgb(${r},${g},0)`; // Removed spaces for consistency
 }
+
 
 async function fetchData(endpoint) {
     try {

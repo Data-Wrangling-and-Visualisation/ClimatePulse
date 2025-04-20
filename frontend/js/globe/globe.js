@@ -76,10 +76,8 @@ export class GlobeVisualization {
     }
 
     async loadData() {
-        const response = await fetchData('/api/wb/metric?metric=co2');
-        if (response.ok) {
-            const data = await response.json();
-
+        const data = await fetchData('/api/wb/metric?metric=co2');
+        if (data) {
             this.countryData = {};
             Object.keys(data).forEach(country => {
                 const years = Object.keys(data[country]).map(Number).sort((a, b) => b - a);
@@ -105,57 +103,62 @@ export class GlobeVisualization {
         if (!this.countryData) return;
         this.countryGroup = new THREE.Group();
         this.scene.add(this.countryGroup);
-
-        const segments = 20;
-        for (let i = 0; i < segments; i++) {
-            const phi = Math.acos(-1 + (2 * i) / segments);
-            for (let j = 0; j < segments; j++) {
-                const theta = Math.sqrt(segments * Math.PI) * j / segments;
-
-                const size = 0.1;
-                const geometry = new THREE.PlaneGeometry(size, size);
-
-                const x = Math.sin(phi) * Math.cos(theta);
-                const y = Math.sin(phi) * Math.sin(theta);
-                const z = Math.cos(phi);
-
-                const randomValue = Math.random() * (this.maxValue - this.minValue) + this.minValue;
-                const color = getColorForValue(randomValue, this.minValue, this.maxValue);
-
-                const material = new THREE.MeshBasicMaterial({
-                    color: new THREE.Color(color),
-                    transparent: true,
-                    opacity: 0.7,
-                    side: THREE.DoubleSide
-                });
-
-                const plane = new THREE.Mesh(geometry, material);
-
-                plane.position.set(x, y, z);
-                plane.lookAt(new THREE.Vector3(0, 0, 0));
-                plane.rotateX(Math.PI / 2);
-
-                plane.position.multiplyScalar(1.01);
-
-                const countryId = `country-${i}-${j}`;
-                this.countryMeshes[countryId] = plane;
-
-                plane.userData = {
-                    id: countryId,
-                    value: randomValue,
-                    name: `Country ${i}-${j}`
-                };
-
-                this.countryGroup.add(plane);
-            }
-        }
+    
+        const countries = Object.entries(this.countryData);
+        const segments = Math.ceil(Math.sqrt(countries.length));
+        const deltaPhi = Math.PI / segments;
+        const deltaTheta = (2 * Math.PI) / segments;
+    
+        countries.forEach(([countryCode, data], index) => {
+            const i = Math.floor(index / segments);
+            const j = index % segments;
+    
+            const phiStart = i * deltaPhi;
+            const thetaStart = j * deltaTheta;
+    
+            const geometry = new THREE.SphereGeometry(
+                1.01,
+                8, 
+                8,
+                thetaStart,
+                deltaTheta * 0.9,
+                phiStart,
+                deltaPhi * 0.9
+            );
+    
+            const color = getColorForValue(data.value, this.minValue, this.maxValue);
+            
+            // Use Phong material for better lighting interaction
+            const material = new THREE.MeshPhongMaterial({
+                color: new THREE.Color(color),
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide,
+                specular: 0x111111,
+                shininess: 20
+            });
+    
+            const segment = new THREE.Mesh(geometry, material);
+            
+    
+            segment.userData = {
+                id: countryCode,
+                value: data.value,
+                name: countryCode
+            };
+    
+            this.countryGroup.add(segment);
+            this.countryMeshes[countryCode] = segment;
+        });
     }
+    
+        
 
     setupEventListeners() {
         this.renderer.domElement.addEventListener('mousemove', (event) => {
             const mouse = new THREE.Vector2();
-            mouse.x = (event.clientX / this.renderer.domElement.clientWidth) * 2 - 1;
-            mouse.y = -(event.clientY / this.renderer.domElement.clientHeight) * 2 + 1;
+            mouse.x = (event.clientX / this.renderer.domElement.clientWidth) * 1.5 - 1;
+            mouse.y = -(event.clientY / this.renderer.domElement.clientHeight) * 1.5 + 1;
 
             const raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(mouse, this.camera);
@@ -163,18 +166,18 @@ export class GlobeVisualization {
             const intersects = raycaster.intersectObjects(this.countryGroup.children);
 
             if (this.highlightedCountry) {
-                this.highlightedCountry.material.opacity = 0.7;
+                this.highlightedCountry.material.opacity = 0.6;
                 this.highlightedCountry.scale.set(1, 1, 1);
             }
 
             if (intersects.length > 0) {
                 const country = intersects[0].object;
-                country.material.opacity = 1;
+                country.material.opacity = 0.6;
                 country.scale.set(1.2, 1.2, 1.2);
                 this.highlightedCountry = country;
 
                 const tooltip = document.getElementById('globe-tooltip');
-                tooltip.style.opacity = '1';
+                tooltip.style.opacity = '0.6';
                 tooltip.innerHTML = `
                     <strong>${country.userData.name}</strong><br>
                     CO₂ Emissions: ${formatNumber(country.userData.value)} Mt<br>
@@ -196,9 +199,6 @@ export class GlobeVisualization {
 
     animate() {
         requestAnimationFrame(() => this.animate());
-
-        this.globe.rotation.y += 0.001;
-        this.atmosphere.rotation.y += 0.001;
 
         this.controls.update();
 
