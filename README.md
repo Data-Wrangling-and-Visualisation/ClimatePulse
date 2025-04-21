@@ -14,7 +14,7 @@ To tun the app you can simple clone our repository and run ``docker-compose up -
 
 ![](./checkpoints/pictures/country_chart_openes.jpg)
 
-
+![](./checkpoints/pictures/globe_final.jpg)
 
 
 ## Project Description
