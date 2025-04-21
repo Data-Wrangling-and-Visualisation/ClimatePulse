@@ -101,6 +101,7 @@ body {
     font-size: 16px;
     margin-bottom: 2rem;
     margin-top: 2rem;
+    padding: 10px;
     background-color: rgba(44, 62, 80, 0.9);
     border-radius: 8px;
 }
@@ -428,4 +429,15 @@ body {
 #change-trend {
     background-color: rgb(255, 245, 156);
     margin-top: 20px;
+}
+
+.chart-placeholder-text {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    color: #2c3e50;
+    transition: color 0.3s ease;
+}
+
+.chart-placeholder-text:hover {
+    color: #f39c12;
 }

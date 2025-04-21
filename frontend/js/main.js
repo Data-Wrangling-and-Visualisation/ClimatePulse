@@ -2,6 +2,7 @@ import { TemperatureChart } from './charts/temperatureChart.js';
 import { CO2Chart } from './charts/co2Chart.js';
 import { CountryStatsChart } from './charts/countryStatsChart.js';
 import { RenewableEnergyChart } from './charts/renewableEnergyChart.js';
+import { PredictionChart } from './charts/predictionChart.js';
 import { GlobeVisualization } from './globe/globe.js';
 
 class ClimatePulseApp {
@@ -27,6 +28,9 @@ class ClimatePulseApp {
 
         this.renewableEnergyChart = new RenewableEnergyChart(
             document.querySelector('[data-chart="renewable"] .chart-placeholder')
+        );
+        this.predictionChart = new PredictionChart(
+            document.querySelector('[data-chart="prediction"] .chart-placeholder')
         );
     }
 
@@ -55,6 +59,10 @@ class ClimatePulseApp {
             case 'renewable':
                 modalTitle.textContent = 'Renewable Energy Leaders';
                 this.renewableEnergyChart.renderModalContent();
+                break;
+            case 'prediction':
+                modalTitle.textContent = 'Future Climate Predictions';
+                this.predictionChart.renderModalContent();
                 break;
         }
 
