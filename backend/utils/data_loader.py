@@ -1,7 +1,7 @@
 import json
-from backend.config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
-from backend.utils.metric_mapper import get_metric_name, get_metric_key, get_nasa_metric_name, get_available_metrics
-from backend.utils.train import predict_metrics
+from config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
+from utils.metric_mapper import get_metric_name, get_metric_key, get_nasa_metric_name, get_available_metrics
+from utils.train import predict_metrics
 
 class ClimateDataLoader:
     def __init__(self):
