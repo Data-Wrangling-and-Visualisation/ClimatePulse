@@ -64,6 +64,7 @@ class ClimatePulseApp {
                 modalTitle.textContent = 'Future Climate Predictions';
                 this.predictionChart.renderModalContent();
                 break;
+            
         }
 
         modal.style.display = 'block';
@@ -87,6 +88,27 @@ class ClimatePulseApp {
         document.getElementById('dataSourcesBtn').addEventListener('click', () => {
             alert('Data sources: NASA, World Bank');
         });
+
+        const navbarHeight = document.querySelector('.main-nav').offsetHeight;
+
+        document.getElementById('climateBtn').addEventListener('click', () => {
+            const targetSection = document.getElementById('climateDataSection');
+            const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navbarHeight;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        });
+
+        document.getElementById('predictionsBtn').addEventListener('click', () => {
+            const targetSection = document.getElementById('predictionsSection');
+            const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navbarHeight;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        });
+
+        document.getElementById('mapBtn').addEventListener('click', () => {
+            const targetSection = document.getElementById('globeSection');
+            const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navbarHeight;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        });
+
 
         document.getElementById('feedbackForm').addEventListener('submit', (e) => {
             e.preventDefault();

@@ -15,15 +15,18 @@
 <body>
     <header class="app-header">
         <div class="container">
-            <h1>ClimatePulse</h1>
+            <h1>Climate Pulse</h1>
             <!-- <p>Visualizing the impact of climate change worldwide</p> -->
         </div>
     </header>
 
     <nav class="main-nav">
-        <div class="container">
+        <div class="container-nav">
             <button id="scrollTopBtn" class="nav-btn">Top</button>
             <button id="dataSourcesBtn" class="nav-btn">Data Sources</button>
+            <button id="climateBtn" class="nav-btn-data">Climate Data</button>
+            <button id="predictionsBtn" class="nav-btn-data">Predictions</button>
+            <button id="mapBtn" class="nav-btn-data">Map</button>
         </div>
     </nav>
 
@@ -38,7 +41,7 @@
             </div>
         </section>
 
-        <section class="visualization-grid container">
+        <section class="visualization-grid container" id="climateDataSection">
             <h2>Explore Climate Data</h2>
             <div class="grid-container">
                 <div class="grid-item chart-card" data-chart="temperature">
@@ -69,25 +72,27 @@
             </div>
         </section>
 
-        <section class="prediction">
-            <div class="container">
-                <h2>Climate Predictions</h2>
+        <section class="visualization-grid container" id="predictionsSection">
+            <h2>Climate Predictions</h2>
+            <div class="grid-container">
                 <div class="grid-item chart-card" data-chart="prediction">
-                    <h3>Future Climate Trends</h3>
-                    <div class="chart-placeholder">
-                        <p class="chart-placeholder-text">Explore Future Climate Predictions</p>
-                    </div>
+                    <h3>Future Global Temperature Trends</h3>
+                    <div class="chart-placeholder"></div>
+                </div>
+                <div class="grid-item chart-card" data-chart="prediction">
+                    <h3>Future CO₂ Emissions Analysis</h3>
+                    <div class="chart-placeholder"></div>
                 </div>
             </div>
         </section>
 
-        <section class="globe-section">
+        <section class="globe-section" id="globeSection">
             <div class="container">
                 <h2>Global CO₂ Emissions</h2>
                 <div id="globe-container"></div>
-                <div class="globe-controls">
+                <!-- <div class="globe-controls">
                     <div class="tooltip" id="globe-tooltip"></div>
-                </div>
+                </div> -->
             </div>
         </section>
     </main>

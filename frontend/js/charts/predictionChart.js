@@ -24,7 +24,6 @@ class PredictionChart {
         const placeholderText = d3.select(this.container)
             .append('div')
             .attr('class', 'chart-placeholder-text')
-            .text('Explore Future Climate Predictions')
             .style('cursor', 'pointer')
             .style('text-align', 'center')
             .style('font-size', '18px')
