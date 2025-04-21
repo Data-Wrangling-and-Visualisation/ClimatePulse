@@ -13,7 +13,8 @@ class ClimatePulseApp {
 
     initCharts() {
         this.temperatureChart = new TemperatureChart(
-            document.querySelector('[data-chart="temperature"] .chart-placeholder')
+            document.querySelector('[data-chart="temperature"] .chart-placeholder'),
+            document.querySelector('[data-chart="temperature"] .modal'),
         );
 
         this.co2Chart = new CO2Chart(
@@ -41,7 +42,7 @@ class ClimatePulseApp {
         switch (chartType) {
             case 'temperature':
                 modalTitle.textContent = 'Global Temperature Trends';
-                this.temperatureChart.renderChart();
+                this.temperatureChart.renderModalContent();
                 break;
             case 'co2':
                 modalTitle.textContent = 'CO₂ Emissions Analysis';

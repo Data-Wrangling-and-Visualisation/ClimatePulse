@@ -13,6 +13,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: Inter;
 }
 
 body {
@@ -40,18 +41,18 @@ body {
 }
 
 .app-header h1 {
-    font-size: 3rem;
+    font-size: 4rem;
     margin-bottom: 0.5rem;
 }
 
 .app-header p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     opacity: 0.9;
 }
 
 /* Navigation */
 .main-nav {
-    background-color: var(--primary-color);
+    background-color: #102133;
     padding: 1rem 0;
     position: sticky;
     top: 0;
@@ -59,7 +60,7 @@ body {
 }
 
 .nav-btn {
-    background-color: var(--secondary-color);
+    background-color: #23445a;
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -75,8 +76,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
-        url('../images/earth-space.jpg') no-repeat center center/cover;
+    background: url('../images/earth_homepage.jpg') no-repeat center center/cover;
     color: white;
     height: 80vh;
     display: flex;
@@ -86,17 +86,23 @@ body {
 
 .hero-text {
     max-width: 800px;
+    height: 340px;
     margin: 0 auto;
 }
 
 .hero-text h2 {
-    font-size: 2.5rem;
+    font-size: 30px;
     margin-bottom: 1rem;
+    background-color: rgba(44, 62, 80, 0.9);
+    border-radius: 8px;
 }
 
 .hero-text p {
-    font-size: 1.2rem;
+    font-size: 16px;
     margin-bottom: 2rem;
+    margin-top: 2rem;
+    background-color: rgba(44, 62, 80, 0.9);
+    border-radius: 8px;
 }
 
 /* Visualization Grid */
@@ -116,6 +122,7 @@ body {
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    /* grid-template-rows: auto auto 1fr 1fr 1fr auto auto; */
     gap: 2rem;
     align-self: center;
 }
@@ -130,6 +137,8 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: 80px;
+
 }
 
 .grid-item:hover {
@@ -139,7 +148,6 @@ body {
 
 .grid-item h3 {
     color: var(--secondary-color);
-    /* margin-bottom: 1rem; */
 }
 
 .chart-placeholder {
@@ -151,6 +159,14 @@ body {
     align-items: center;
     justify-content: center;
     color: var(--text-light);
+}
+.chart-placeholder-text {
+    margin-left: 50px;
+    margin-right: 0;
+}
+
+.bar-image {
+    width: 230px;
 }
 
 /* Globe Section */
@@ -295,7 +311,8 @@ body {
 }
 
 .modal-header {
-    padding: 1.5rem;
+    padding: 8px 16px 8px 16px;
+    margin: 8px 10px 8px 10px;
     border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
@@ -303,7 +320,7 @@ body {
 }
 
 .close-btn {
-    font-size: 1.5rem;
+    font-size: 3rem;
     cursor: pointer;
     color: var(--text-light);
 }
@@ -394,4 +411,21 @@ body {
     min-height: 300px;
     background: #f5f5f5;
     border-radius: 4px;
+}
+
+
+.modal-controls {
+    margin-bottom: 20px;
+}
+
+#country-selector, #metric-selector {
+    padding: 5px;
+    font-size: 16px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+#change-trend {
+    background-color: rgb(255, 245, 156);
+    margin-top: 20px;
 }

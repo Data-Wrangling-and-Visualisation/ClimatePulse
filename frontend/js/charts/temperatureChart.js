@@ -1,13 +1,15 @@
 import { fetchData, formatTooltip } from '../utils/helpers.js';
 
 class TemperatureChart {
-    constructor(container, modalContainer) {
+    constructor(container) {
         this.container = container;
-        this.modalContainer = modalContainer;
+        this.modalContainer = document.getElementById('modalChartContainer');
+
         this.margin = { top: 60, right: 180, bottom: 50, left: 50 };
         this.width = 600 - this.margin.left - this.margin.right;
         this.height = 400 - this.margin.top - this.margin.bottom;
         this.data = null;
+        this.changeText = document.getElementById("change-trend");
         
         this.init();
     }
@@ -16,7 +18,6 @@ class TemperatureChart {
         this.data = await fetchData('/api/nasa/global-temperature');
         if (!this.data) return;
         this.renderChart();
-        this.setupEventListeners();
     }
     
     renderChart() {
@@ -108,45 +109,23 @@ class TemperatureChart {
             });
     }
     
-    setupEventListeners() {
-        const controls = d3.select(this.container).node().parentNode;
-        const controlDiv = d3.select(controls).insert('div', ':first-child')
-            .attr('class', 'chart-controls');
-
-        if (this.countries.length > 0) {
-            controlDiv.append('label')
-                .text('Select Country: ')
-                .attr('for', 'country-select');
-
-            controlDiv.append('select')
-                .attr('id', 'country-select')
-                .on('change', (event) => {
-                    this.selectedCountry = event.target.value;
-                    this.loadCountryData(this.selectedCountry)
-                        .then(() => this.updateChart());
-                })
-                .selectAll('option')
-                .data(this.countries)
-                .enter().append('option')
-                .text(d => d)
-                .attr('value', d => d);
-        }
-    }
     
     renderModalContent() {
-        d3.select(this.container).selectAll('*').remove();
-        
-        // const modalWidth = this.modalContainer.node().clientWidth - this.margin.left - this.margin.right;
-        // const modalHeight = 500 - this.margin.top - this.margin.bottom;
-        
-        const svg = this.modalContainer.append('svg')
-            .attr('width', modalWidth + this.margin.left + this.margin.right)
+        d3.select(this.modalContainer).selectAll('*').remove();
+        const modalWidth =  800;
+        const modalHeight = 400;
+        this.changeText.innerText = "The growth of average temperature for the last century: 1.42°C";
+
+
+        const svg = d3.select(this.modalContainer)
+            .append('svg')
+            .attr('width', modalWidth + this.margin.left + this.margin.right - 50)
             .attr('height', modalHeight + this.margin.top + this.margin.bottom)
             .append('g')
             .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
         
-        const years = this.data[0].map(year => new Date(year, 0, 1));
-        const values = this.data[1];
+        const years = this.data.years.map(year => new Date(year, 0, 1));
+        const values = this.data.values;
         
         const xScale = d3.scaleTime()
             .domain(d3.extent(years))
@@ -174,7 +153,7 @@ class TemperatureChart {
             .call(d3.axisLeft(yScale));
             
         svg.append('text')
-            .attr('transform', `translate(${modalWidth / 2}, ${modalHeight + this.margin.bottom - 5})`)
+            .attr('transform', `translate(${modalWidth / 2}, ${modalHeight + this.margin.bottom - 15})`)
             .style('text-anchor', 'middle')
             .text('Year');
             
@@ -215,7 +194,8 @@ class TemperatureChart {
                     .style('opacity', .9);
                 tooltip.html(formatTooltip(d, 'temperature'))
                     .style('left', (event.pageX + 10) + 'px')
-                    .style('top', (event.pageY - 28) + 'px');
+                    .style('top', (event.pageY - 28) + 'px')
+                    .style('z-index', 10000);
             })
             .on('mouseout', () => {
                 d3.select('#chart-tooltip').transition()
@@ -223,45 +203,6 @@ class TemperatureChart {
                     .style('opacity', 0);
             });
         
-        // this.addTrendLine(svg, lineData, xScale, yScale, modalWidth, modalHeight);
-    }
-    
-    addTrendLine(svg, data, xScale, yScale, width, height) {
-        const n = data.length;
-        const xSum = data.reduce((sum, d) => sum + d.year, 0);
-        const ySum = data.reduce((sum, d) => sum + d.value, 0);
-        const xySum = data.reduce((sum, d) => sum + (d.year * d.value), 0);
-        const xSqSum = data.reduce((sum, d) => sum + (d.year * d.year), 0);
-        
-        const slope = (n * xySum - xSum * ySum) / (n * xSqSum - xSum * xSum);
-        const intercept = (ySum - slope * xSum) / n;
-        
-        const firstYear = data[0].year;
-        const lastYear = data[data.length - 1].year;
-        
-        const trendData = [
-            { year: firstYear, value: slope * firstYear + intercept },
-            { year: lastYear, value: slope * lastYear + intercept }
-        ];
-        
-        const trendLine = d3.line()
-            .x(d => xScale(new Date(d.year, 0, 1)))
-            .y(d => yScale(d.value));
-            
-        svg.append('path')
-            .datum(trendData)
-            .attr('fill', 'none')
-            .attr('stroke', '#3498db')
-            .attr('stroke-width', 2)
-            .attr('stroke-dasharray', '5,5')
-            .attr('d', trendLine);
-            
-        svg.append('text')
-            .attr('x', xScale(new Date(lastYear, 0, 1)) - 10)
-            .attr('y', yScale(slope * lastYear + intercept) - 10)
-            .style('font-size', '12px')
-            .style('fill', '#3498db')
-            .text(`Trend: ${slope.toFixed(3)}°C/year`);
     }
 }
 

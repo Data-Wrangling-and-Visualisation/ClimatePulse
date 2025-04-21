@@ -1,216 +1,211 @@
-import { fetchData, formatTooltip, formatNumber } from '../utils/helpers.js';
+import { fetchData, formatTooltip } from '../utils/helpers.js';
 
 class CountryStatsChart {
-    constructor(container, modalContainer) {
+    constructor(container) {
         this.container = container;
-        this.modalContainer = modalContainer;
-        this.margin = { top: 20, right: 30, bottom: 100, left: 50 };
+        this.modalContainer = document.getElementById('modalChartContainer');
+
+        this.margin = { top: 60, right: 180, bottom: 50, left: 50 };
         this.width = 600 - this.margin.left - this.margin.right;
         this.height = 400 - this.margin.top - this.margin.bottom;
         this.data = null;
-        this.countries = [];
-        this.selectedCountry = 'United States';
-        this.selectedMetrics = ['co2', 'forest', 'air_pollution'];
-
+        this.changeText = document.getElementById('change-trend');
+        
         this.init();
     }
-
+    
     async init() {
-        this.countries = await fetchData('/api/countries');
-        if (this.countries) {
-            this.countries = this.countries.map(c => c.name);
-
-            await this.loadCountryData(this.selectedCountry);
-
-            this.renderChart();
-
-            this.setupEventListeners();
-        }
-    }
-
-    async loadCountryData(country) {
-        const countryData = await fetchData(`/api/country/${country}/metrics`);
-        if (countryData) {
-            this.data = countryData;
-            return true;
-        }
-        return false;
-    }
-
-    renderChart() {
+        this.data = await fetchData('/api/nasa');
         if (!this.data) return;
+        this.renderChart();
+        this.setupEventListeners();
+    }
+    
+    renderChart() {
+    }
+    
+    setupEventListeners() {
+        const controls = d3.select(this.container).node().parentNode;
+        const controlDiv = d3.select(controls).insert('div', ':first-child')
+            .attr('class', 'chart-controls');
+    }
+    
+    async renderModalContent() {
+        d3.select(this.modalContainer).selectAll('*').remove();
+        const modalWidth =  800;
+        const modalHeight = 300;
 
-        d3.select(this.container).selectAll('*').remove();
+        const controlsDiv = d3.select(this.modalContainer)
+            .append('div')
+            .attr('class', 'modal-controls');
 
-        const svg = d3.select(this.container)
+        controlsDiv.append('label')
+            .text('Select Country: ');
+
+        const countryDropdown = controlsDiv.append('select')
+            .attr('id', 'country-selector');
+        controlsDiv.append('br');
+
+        controlsDiv.append('label')
+            .attr('style', 'margin-top: 20px;')
+            .text('Select Metric: ');
+    
+        const metricDropdown = controlsDiv.append('select')
+            .attr('id', 'metric-selector');
+
+        const svg = d3.select(this.modalContainer)
             .append('svg')
-            .attr('width', this.width + this.margin.left + this.margin.right)
-            .attr('height', this.height + this.margin.top + this.margin.bottom)
+            .attr('width', modalWidth + this.margin.left + this.margin.right - 50)
+            .attr('height', modalHeight + this.margin.top + this.margin.bottom)
             .append('g')
             .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`);
 
-        const metricData = {};
-        const allYears = new Set();
+        try {
+            const countries = await fetchData('/api/countries');
+            const metrics = ['co2', 'renewable', 'forest', 'air_pollution'];
+            countries.forEach(country => {
+                countryDropdown.append('option')
+                    .attr('value', country)
+                    .text(country);
+            });
+            metrics.forEach(metric => {
+                metricDropdown.append('option')
+                    .attr('value', metric)
+                    .text(metric.toUpperCase());
+            });
+    
+            // Set up an event listener for the dropdown
+            // let selectedCountry;
+            // let selectedMetric;
+            countryDropdown.on('change', async () => {
+                const selectedCountry = countryDropdown.node().value;
+                const selectedMetric = metricDropdown.node().value;
 
-        this.selectedMetrics.forEach(metric => {
-            if (this.data[metric]) {
-                const years = Object.keys(this.data[metric]).map(Number);
-                years.forEach(year => allYears.add(year));
-                metricData[metric] = years.map(year => ({
-                    year,
-                    value: this.data[metric][year]
-                }));
+                const url = `/api/wb/country?country=${selectedCountry}&metric=${selectedMetric}`;
+                const countryData = await fetchData(url);
+                if (!countryData) return;
+                this.updateModalChart(svg, countryData.years, countryData.values, modalWidth, modalHeight, selectedMetric);
+            });
+            metricDropdown.on('change', async () => {
+                const selectedCountry = countryDropdown.node().value;
+                const selectedMetric = metricDropdown.node().value;
+
+                const url = `/api/wb/country?country=${selectedCountry}&metric=${selectedMetric}`;
+                const countryData = await fetchData(url);
+                if (!countryData) return;
+                this.updateModalChart(svg, countryData.years, countryData.values, modalWidth, modalHeight, selectedMetric);
+            });
+    
+            const initialCountry = countries[0];
+            const initialMetric = 'co2';
+            const initialUrl = `/api/wb/country?country=${initialCountry}&metric=${initialMetric}`;
+            const initialData = await fetchData(initialUrl);
+    
+            if (initialData) {
+                this.updateModalChart(svg, initialData.years, initialData.values, modalWidth, modalHeight);
             }
-        });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }        
+    }
 
-        const sortedYears = Array.from(allYears).sort((a, b) => a - b);
-
-        const xScale = d3.scaleBand()
-            .domain(sortedYears)
-            .range([0, this.width])
-            .padding(0.1);
-
+    updateModalChart(svg, years, values, width, height, metric) {
+        svg.selectAll('*').remove();
+        let textPlaceholder;
+        console.log(metric);
+        if (metric == 'air_pollution') {
+            textPlaceholder = 'The growth of air pollution (micrograms per cubic meter)';
+        } else if (metric == 'renewable') {
+            textPlaceholder = 'The growth of percentage of renewable energy';
+        } else if (metric == 'forest') {
+            textPlaceholder = 'The growth of forest area';
+        } else {
+            textPlaceholder = 'The growth of the emissions ppm value';
+        }
+        let yAxisText;
+        if (metric == 'air_pollution') {
+            yAxisText = 'Air pollution (mcg per m^3)';
+        } else if (metric == 'renewable') {
+            yAxisText = 'Percent of renewable energy';
+        } else if (metric == 'forest') {
+            yAxisText = 'Firest area (km₂)';
+        } else {
+            yAxisText = 'CO₂ Emissions (ppm)';
+        }
+        this.changeText.innerText = `${textPlaceholder} from ${years[0]} till ${years[years.length - 1]} is ${values[values.length - 1] - values[0]}`;
+        const xScale = d3.scaleTime()
+            .domain(d3.extent(years.map(year => new Date(year, 0, 1))))
+            .range([0, width]);
+    
         const yScale = d3.scaleLinear()
-            .domain([0, d3.max(this.selectedMetrics.map(metric =>
-                metricData[metric] ? d3.max(metricData[metric], d => d.value) : 0)
-            ) * 1.1])
-            .range([this.height, 0]);
-
-        const colorScale = d3.scaleOrdinal()
-            .domain(this.selectedMetrics)
-            .range(['#e74c3c', '#2ecc71', '#3498db', '#f39c12', '#9b59b6']);
-
+            .domain([d3.min(values) - 0.5, d3.max(values) + 0.5])
+            .range([height, 0]);
+    
+        const line = d3.line()
+            .x(d => xScale(new Date(d.year, 0, 1)))
+            .y(d => yScale(d.value))
+            .curve(d3.curveBasis);
+    
+        const lineData = years.map((year, i) => ({
+            year: year,
+            value: values[i]
+        }));
+    
+        // Add axes
         svg.append('g')
-            .attr('transform', `translate(0, ${this.height})`)
-            .call(d3.axisBottom(xScale).tickValues(xScale.domain().filter((d, i) => !(i % 5))));
-
+            .attr('transform', `translate(0, ${height})`)
+            .call(d3.axisBottom(xScale).ticks(10));
+    
         svg.append('g')
             .call(d3.axisLeft(yScale));
-
+    
+        // Add labels
         svg.append('text')
-            .attr('transform', `translate(${this.width / 2}, ${this.height + this.margin.bottom - 10})`)
+            .attr('transform', `translate(${width / 2}, ${height + this.margin.bottom - 5})`)
             .style('text-anchor', 'middle')
             .text('Year');
-
+    
         svg.append('text')
             .attr('transform', 'rotate(-90)')
             .attr('y', 0 - this.margin.left)
-            .attr('x', 0 - (this.height / 2))
+            .attr('x', 0 - (height / 2))
             .attr('dy', '1em')
             .style('text-anchor', 'middle')
-            .text('Value');
-
-        svg.append('text')
-            .attr('x', this.width / 2)
-            .attr('y', 0 - (this.margin.top / 2))
-            .attr('text-anchor', 'middle')
-            .style('font-size', '16px')
-            .style('font-weight', 'bold')
-            .text(`${this.selectedCountry} Climate Metrics`);
-
-        const metricGroups = svg.selectAll('.metric-group')
-            .data(this.selectedMetrics)
-            .enter().append('g')
-            .attr('class', 'metric-group');
-
-        metricGroups.selectAll('.bar')
-            .data(d => metricData[d] || [])
-            .enter().append('rect')
-            .attr('class', 'bar')
-            .attr('x', d => xScale(d.year) + xScale.bandwidth() / this.selectedMetrics.length * this.selectedMetrics.indexOf(d3.select(this.parentNode).datum()))
-            .attr('y', d => yScale(d.value))
-            .attr('width', xScale.bandwidth() / this.selectedMetrics.length)
-            .attr('height', d => this.height - yScale(d.value))
-            .attr('fill', d => colorScale(d3.select(this.parentNode).datum()))
-            .on('mouseover', function (event, d) {
-                const metric = d3.select(this.parentNode).datum();
+            .text(yAxisText);
+    
+        // Draw the line and dots
+        svg.append('path')
+            .datum(lineData)
+            .attr('fill', 'none')
+            .attr('stroke', '#e74c3c')
+            .attr('stroke-width', 2)
+            .attr('d', line);
+    
+        svg.selectAll('.dot')
+            .data(lineData)
+            .enter().append('circle')
+            .attr('class', 'dot')
+            .attr('cx', d => xScale(new Date(d.year, 0, 1)))
+            .attr('cy', d => yScale(d.value))
+            .attr('r', 4)
+            .attr('fill', '#2c3e50')
+            .on('mouseover', (event, d) => {
                 const tooltip = d3.select('#chart-tooltip');
                 tooltip.transition()
                     .duration(200)
                     .style('opacity', .9);
-                tooltip.html(formatTooltip(d, metric))
+                tooltip.html(formatTooltip(d, 'emissions'))
                     .style('left', (event.pageX + 10) + 'px')
-                    .style('top', (event.pageY - 28) + 'px');
+                    .style('top', (event.pageY - 28) + 'px')
+                    .style('z-index', 10000);
             })
             .on('mouseout', () => {
                 d3.select('#chart-tooltip').transition()
                     .duration(500)
                     .style('opacity', 0);
             });
-
-        const legend = svg.append('g')
-            .attr('transform', `translate(${this.width - 150}, 20)`);
-
-        this.selectedMetrics.forEach((metric, i) => {
-            const legendItem = legend.append('g')
-                .attr('transform', `translate(0, ${i * 20})`);
-
-            legendItem.append('rect')
-                .attr('width', 15)
-                .attr('height', 15)
-                .attr('fill', colorScale(metric));
-
-            legendItem.append('text')
-                .attr('x', 20)
-                .attr('y', 12)
-                .style('font-size', '12px')
-                .text(metric);
-        });
     }
-
-    setupEventListeners() {
-        const controls = d3.select(this.container).node().parentNode;
-        const controlDiv = d3.select(controls).insert('div', ':first-child')
-            .attr('class', 'chart-controls');
-
-        controlDiv.append('label')
-            .text('Select Country: ')
-            .attr('for', 'country-select');
-
-        controlDiv.append('select')
-            .attr('id', 'country-select')
-            .on('change', async (event) => {
-                this.selectedCountry = event.target.value;
-                await this.loadCountryData(this.selectedCountry);
-                this.renderChart();
-            })
-            .selectAll('option')
-            .data(this.countries)
-            .enter().append('option')
-            .text(d => d)
-            .attr('value', d => d)
-            .property('selected', d => d === this.selectedCountry);
-
-        controlDiv.append('label')
-            .text('Select Metrics: ')
-            .attr('for', 'metric-select');
-
-        const metricSelect = controlDiv.append('select')
-            .attr('id', 'metric-select')
-            .attr('multiple', true)
-            .on('change', (event) => {
-                this.selectedMetrics = Array.from(event.target.selectedOptions, option => option.value);
-                this.renderChart();
-            });
-
-        const availableMetrics = [
-            { value: 'co2', text: 'CO2 Emissions' },
-            { value: 'forest', text: 'Forest Area' },
-            { value: 'air_pollution', text: 'Air Pollution' },
-            { value: 'renewable', text: 'Renewable Energy' }
-        ];
-
-        metricSelect.selectAll('option')
-            .data(availableMetrics)
-            .enter().append('option')
-            .text(d => d.text)
-            .attr('value', d => d.value)
-            .property('selected', d => this.selectedMetrics.includes(d.value));
-    }
-
-    renderModalContent() {
-        // TODO: expanded version with more metrics and interactive features
-    }
+    
 }
 
 export { CountryStatsChart };
