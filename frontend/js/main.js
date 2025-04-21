@@ -77,7 +77,7 @@ class ClimatePulseApp {
         });
 
         document.getElementById('dataSourcesBtn').addEventListener('click', () => {
-            alert('Data sources: NASA, NOAA, World Bank');
+            alert('Data sources: NASA, World Bank');
         });
 
         document.getElementById('feedbackForm').addEventListener('submit', (e) => {

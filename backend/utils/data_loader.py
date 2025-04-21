@@ -157,7 +157,4 @@ class ClimateDataLoader:
     def get_predictions(self, n_years):
         self.load_predict_metrics(n_years)
         return self.predictions
-
-dl = ClimateDataLoader()
-t = dl.get_country_names()
-print(t)
+    
