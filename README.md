@@ -6,6 +6,17 @@ See the structure [here](./checkpoints/repository_structure.md)
 ## Run the app
 To tun the app you can simple clone our repository and run ``docker-compose up --build`` from the root directory. After containers are ready the page is available on the ``localhost:8080``.
 
+## Visualizations
+
+![](./checkpoints/pictures/temp_co2_charts.jpg)
+
+![](./checkpoints/pictures/country_renew_charts.jpg)
+
+![](./checkpoints/pictures/country_chart_openes.jpg)
+
+
+
+
 ## Project Description
 
 ### Goal  
