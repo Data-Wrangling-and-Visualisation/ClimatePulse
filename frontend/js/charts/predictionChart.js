@@ -53,7 +53,7 @@ class PredictionChart {
             if (!predictionData || !Array.isArray(predictionData)) return;
 
             // Extract years and values from the prediction data
-            const years = Array.from({ length: nYears + 1 }, (_, i) => 2024 + i);
+            const years = Array.from({ length: nYears }, (_, i) => 2024 + i);
             const values = predictionData;
 
             // Render the prediction chart
@@ -64,6 +64,18 @@ class PredictionChart {
     }
 
     updateModalChart(years, values, width, height) {
+
+        const validData = years.map((year, i) => ({
+            year: year,
+            value: values[i]
+        })).filter(d => !isNaN(d.value));
+
+        // Check if validData is empty
+        if (validData.length === 0) {
+            console.error('No valid data available for rendering the chart.');
+            return;
+        }
+
         // Append an SVG element to the modal container
         const svg = d3.select(this.modalContainer)
             .append('svg')
@@ -85,7 +97,7 @@ class PredictionChart {
         // Add axes
         svg.append('g')
             .attr('transform', `translate(0, ${height})`)
-            .call(d3.axisBottom(xScale).ticks(10));
+            .call(d3.axisBottom(xScale).ticks(validData.length).tickFormat(d3.format('d')));
 
         svg.append('g')
             .call(d3.axisLeft(yScale));
