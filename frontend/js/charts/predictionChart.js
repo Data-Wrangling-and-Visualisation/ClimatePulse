@@ -47,13 +47,14 @@ class PredictionChart {
             // Fetch prediction data for the next 50 years
             const nYears = 10; // You can adjust this value or make it configurable
             const url = `/api/predict/${nYears}`;
-            const predictionData = await fetchData(url);
+            const predictionDataAll = await fetchData(url);
 
+            const predictionData = predictionDataAll['global-temperature'] || [];
             if (!predictionData || !Array.isArray(predictionData)) return;
 
             // Extract years and values from the prediction data
-            const years = predictionData.map(d => d.year);
-            const values = predictionData.map(d => d.value);
+            const years = Array.from({ length: nYears + 1 }, (_, i) => 2024 + i);
+            const values = predictionData;
 
             // Render the prediction chart
             this.updateModalChart(years, values, modalWidth, modalHeight);
