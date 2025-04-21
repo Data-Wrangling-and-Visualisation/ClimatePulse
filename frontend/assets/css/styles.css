@@ -161,10 +161,7 @@ body {
     justify-content: center;
     color: var(--text-light);
 }
-.chart-placeholder-text {
-    margin-left: 50px;
-    margin-right: 0;
-}
+
 
 .bar-image {
     width: 230px;
@@ -432,10 +429,11 @@ body {
 }
 
 .chart-placeholder-text {
-    font-family: 'Inter', sans-serif;
     font-weight: 500;
-    color: #2c3e50;
+    margin-left: 50px;
+    margin-right: 0;
     transition: color 0.3s ease;
+    min-height: 20px;
 }
 
 .chart-placeholder-text:hover {
