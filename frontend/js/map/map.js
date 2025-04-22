@@ -52,24 +52,9 @@ export class WorldMapVisualization {
     async loadData() {
         try {
             // Load country metadata
-            const metadataResponse = await fetch('/data/countries_data.json');
-            const rawMetadataAll = await metadataResponse.json();
-            const rawMetadata = rawMetadataAll[0];
+            const metadataResponse = await fetchData('/api/countries_data');
 
-            // Process metadata into a more usable format
-            this.countryMetadata = rawMetadata.reduce((acc, country) => {
-                if (country.longitude && country.latitude) {
-                    acc[country.name] = {
-                        id: country.id,
-                        code: country.iso2Code,
-                        longitude: parseFloat(country.longitude),
-                        latitude: parseFloat(country.latitude),
-                        region: country.region?.value || 'Unknown',
-                        capital: country.capitalCity || 'Unknown'
-                    };
-                }
-                return acc;
-            }, {});
+            this.countryMetadata = metadataResponse;
 
             // Load initial emissions data
             await this.loadEmissionsData();

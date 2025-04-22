@@ -16,7 +16,6 @@ class RenewableEnergyChart {
     
     async init() {
         this.data = await fetchData(`/api/top/${'renewable'}?limit=10`);
-        console.log(this.data);
         if (!this.data) return;
         this.renderChart();
     }

@@ -55,19 +55,19 @@ class ClimateDataLoader:
     def load_country_metadata(self):
         with open(self.country_path) as f:
             raw_data = json.load(f)
+
         self.country_metadata = {
             country['name']: {
-                'code': country['id'],
-                'region': country['region']['value'],
-                'incomeLevel': country['incomeLevel']['value'],
-                'capital': country['capitalCity'],
-                'coordinates': {
-                    'longitude': float(country['longitude']),
-                    'latitude': float(country['latitude'])
-                } if country['longitude'] and country['latitude'] else None
+                'id': country['id'],
+                'code': country['iso2Code'],
+                'longitude': float(country['longitude']),
+                'latitude': float(country['latitude']),
+                'region': country.get('region', {}).get('value', 'Unknown'),
+                'capital': country.get('capitalCity', 'Unknown')
             }
-            for country in raw_data[0] if country['name']
+            for country in raw_data[0] if country['name'] and country['longitude'] and country['latitude']
         }
+        return self.country_metadata
 
     def load_predict_metrics(self, n_years):
         with open(self.nasa_path, 'r') as f:
