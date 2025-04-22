@@ -4,6 +4,7 @@ import { CountryStatsChart } from './charts/countryStatsChart.js';
 import { RenewableEnergyChart } from './charts/renewableEnergyChart.js';
 import { PredictionChart } from './charts/predictionChart.js';
 import { GlobeVisualization } from './globe/globe.js';
+import { WorldMapVisualization } from './map/map.js';
 
 class ClimatePulseApp {
     constructor() {
@@ -35,7 +36,8 @@ class ClimatePulseApp {
     }
 
     initGlobe() {
-        this.globe = new GlobeVisualization('globe-container');
+        this.map = new WorldMapVisualization('map-container');
+        // this.globe = new GlobeVisualization('globe-container');
     }
 
     openChartModal(chartType) {

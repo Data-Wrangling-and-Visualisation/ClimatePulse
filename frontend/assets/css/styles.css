@@ -189,10 +189,47 @@ body {
     width: 230px;
 }
 
-/* Globe Section */
+/* Map Section */
+.map-controls {
+    margin-bottom: 10px;
+}
+
+.map-controls select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.data-point {
+    /* color: red;
+    width: 1rem; */
+    transition: r 0.2s ease;
+}
+
+.map-tooltip {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 200px;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.country:hover {
+    stroke-width: 2px;
+    stroke: #000;
+    cursor: pointer;
+}
+
+.legend text {
+    font-size: 12px;
+    fill: #333;
+}
+
+/* 
 .globe-section {
     padding: 4rem 0;
-    /* background-color: var(--light-color); */
+    background-color: var(--light-color);
 }
 
 .globe-section h2 {
@@ -249,7 +286,7 @@ body {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.3s ease;
-}
+} */
 
 /* Footer */
 .app-footer {
