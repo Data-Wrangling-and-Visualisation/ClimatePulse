@@ -1,21 +1,39 @@
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.8.5/+esm';
 import * as topojson from "https://cdn.skypack.dev/topojson@3.0.2";
-import { fetchData, getColorForValue, formatNumber } from '../utils/helpers.js';
+import { fetchData, formatNumber } from '../utils/helpers.js';
 
 export class WorldMapVisualization {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.countryData = {};
         this.countryMetadata = {};
-        this.currentYear = new Date().getFullYear() - 1; // Default to last year
-        this.metric = 'co2'; // Default metric
+        this.currentYear = 2023;
+        this.metric = 'co2';
+        this.currentTransform = d3.zoomIdentity;
+
+        this.zoomed = (event) => {
+            this.currentTransform = event.transform;
+            this.mapGroup.attr('transform', event.transform);
+            this.updatePointSizes();
+        };
+
+        this.zoom = d3.zoom().scaleExtent([1, 8]).on('zoom', this.zoomed.bind(this));
 
         this.initMap();
         this.loadData();
     }
 
+    getColorForValue(value, min, max) {
+        const logMin = min > 0 ? Math.log10(min) : 0;
+        const logMax = Math.log10(max);
+        const logValue = value > 0 ? Math.log10(value) : logMin;
+        const normalized = (logValue - logMin) / (logMax - logMin);
+
+        return d3.scaleSequential(d3.interpolatePlasma)
+            .domain([1, 0])(normalized);
+    }
+
     async initMap() {
-        // Set up SVG container
         this.width = this.container.clientWidth;
         this.height = this.container.clientHeight;
 
@@ -24,9 +42,11 @@ export class WorldMapVisualization {
             .attr('width', this.width)
             .attr('height', this.height)
             .attr('viewBox', `0 0 ${this.width} ${this.height}`)
-            .style('background-color', '#f5f5f5');
+            .style('background-color', '#f5f5f5')
+            .call(this.zoom);
 
-        // Add year selection control
+        this.mapGroup = this.svg.append('g');
+
         this.yearSelect = d3.select(this.container)
             .insert('div', ':first-child')
             .attr('class', 'map-controls')
@@ -37,7 +57,6 @@ export class WorldMapVisualization {
                 this.updateMap();
             });
 
-        // Add tooltip div
         this.tooltip = d3.select('body').append('div')
             .attr('class', 'map-tooltip')
             .style('opacity', 0)
@@ -49,21 +68,32 @@ export class WorldMapVisualization {
             .style('pointer-events', 'none');
     }
 
+    zoomed(event) {
+        this.currentTransform = event.transform;
+        this.mapGroup.attr('transform', event.transform);
+        this.updatePointSizes();
+    }
+
+    updatePointSizes() {
+        const zoomLevel = this.currentTransform.k;
+        const sizeFactor = 1 / Math.max(1, Math.pow(zoomLevel, 0.7));
+
+        this.mapGroup.selectAll('.data-point')
+            .attr('r', d => {
+                const value = d[1][this.currentYear];
+                return Math.sqrt(value / this.maxValue * 30) * sizeFactor + 2;
+            })
+            .attr('stroke-width', 0.5 + (1 / zoomLevel));
+    }
+
     async loadData() {
         try {
-            // Load country metadata
             const metadataResponse = await fetchData('/api/countries_data');
-
             this.countryMetadata = metadataResponse;
-
-            // Load initial emissions data
             await this.loadEmissionsData();
 
-            // Get available years for dropdown
             const years = await this.getAvailableYears();
             this.populateYearSelect(years);
-
-            // Draw the map
             this.drawMap();
         } catch (error) {
             console.error('Error loading map data:', error);
@@ -75,7 +105,6 @@ export class WorldMapVisualization {
             const data = await fetchData(`/api/wb/metric?metric=${this.metric}`);
 
             if (data) {
-                // Process data into {country: {year: value}} format
                 this.countryData = {};
                 this.minValue = Infinity;
                 this.maxValue = -Infinity;
@@ -88,10 +117,6 @@ export class WorldMapVisualization {
                             const numericValue = parseFloat(value);
                             if (!isNaN(numericValue)) {
                                 this.countryData[country][year] = numericValue;
-
-                                // Update min/max for color scaling
-                                if (numericValue < this.minValue) this.minValue = numericValue;
-                                if (numericValue > this.maxValue) this.maxValue = numericValue;
                             }
                         }
                     }
@@ -105,22 +130,18 @@ export class WorldMapVisualization {
     async getAvailableYears() {
         try {
             const data = await fetchData('/api/wb/metric?metric=co2');
-            console.log(data);
-
             const years = new Set();
 
-            // Collect all available years from the data
             Object.values(data).forEach(countryData => {
                 Object.keys(countryData).forEach(year => {
                     years.add(parseInt(year));
                 });
             });
-            console.log(years);
 
-            return Array.from(years).sort((a, b) => b - a); // Sort descending
+            return Array.from(years).sort((a, b) => b - a);
         } catch (error) {
             console.error('Error getting available years:', error);
-            return [this.currentYear]; // Fallback to current year
+            return [this.currentYear];
         }
     }
 
@@ -135,119 +156,176 @@ export class WorldMapVisualization {
     }
 
     async drawMap() {
-        // Load world map GeoJSON
         const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
 
-        // Create a projection centered on 0,0
         this.projection = d3.geoMercator()
             .scale(this.width / 6)
             .translate([this.width / 2, this.height / 2]);
 
-        // Create path generator
         const path = d3.geoPath().projection(this.projection);
 
-        // Draw base map
-        this.svg.append('g')
-            .selectAll('path')
+        this.calculateMinMaxForCurrentYear();
+
+        this.mapGroup.selectAll('.country')
             .data(topojson.feature(world, world.objects.countries).features)
             .enter()
             .append('path')
             .attr('class', 'country')
             .attr('d', path)
-            .attr('fill', '#ddd')
-            .attr('stroke', '#fff')
-            .attr('stroke-width', 0.5);
+            .attr('fill', d => {
+                const countryName = this.findCountryByFeature(d);
 
-        // Draw data points
+                if (countryName && this.countryData[countryName]?.[this.currentYear]) {
+                    return this.getColorForValue(
+                        this.countryData[countryName][this.currentYear],
+                        this.minValue,
+                        this.maxValue
+                    );
+                }
+                return '#ddd';
+            })
+            .attr('stroke', '#fff')
+            .attr('stroke-width', 0.5)
+            .on('mouseover', this.handleCountryMouseover.bind(this))
+            .on('mouseout', this.handleCountryMouseout.bind(this));
+
         this.drawDataPoints();
 
-        // Add legend
         this.addLegend();
     }
 
-    drawDataPoints() {
-        // Remove existing points if any
-        this.svg.selectAll('.data-point').remove();
+    findCountryByFeature(feature) {
+        if (feature.properties && feature.properties.name) {
+            const exactName = feature.properties.name;
+            if (this.countryMetadata[exactName]) {
+                return exactName;
+            }
+        }
 
-        // Filter countries with valid data for current year
+        return this.findCountryByPolygonContainment(feature);
+    }
+
+    findCountryByPolygonContainment(feature) {
+        const polygons = this.extractAllPolygons(feature.geometry);
+
+        for (const [country, meta] of Object.entries(this.countryMetadata)) {
+            if (meta.longitude && meta.latitude) {
+                if (this.isPointInPolygons(meta.longitude, meta.latitude, polygons)) {
+                    return country;
+                }
+            }
+        }
+
+        console.log("failed", feature.properties.name);
+        return null;
+    }
+
+    extractAllPolygons(geometry) {
+        const polygons = [];
+
+        if (geometry.type === 'Polygon') {
+            polygons.push(geometry.coordinates);
+        }
+        else if (geometry.type === 'MultiPolygon') {
+            for (const polygon of geometry.coordinates) {
+                polygons.push(polygon);
+            }
+        }
+
+        return polygons;
+    }
+
+    isPointInPolygons(lng, lat, polygons) {
+        for (const polygon of polygons) {
+            if (this.isPointInPolygon(lng, lat, polygon)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    isPointInPolygon(lng, lat, polygon) {
+        const rings = Array.isArray(polygon[0][0]) ? polygon : [polygon];
+
+        let inside = false;
+        for (const ring of rings) {
+            if (ring.length < 3) continue;
+
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const xi = ring[i][0], yi = ring[i][1];
+                const xj = ring[j][0], yj = ring[j][1];
+
+                const intersect = ((yi > lat) !== (yj > lat)) &&
+                    (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    calculateMinMaxForCurrentYear() {
+        this.minValue = Infinity;
+        this.maxValue = -Infinity;
+
+        for (const country in this.countryData) {
+            const value = this.countryData[country]?.[this.currentYear];
+            if (value !== undefined) {
+                if (value < this.minValue) this.minValue = value;
+                if (value > this.maxValue) this.maxValue = value;
+            }
+        }
+
+        if (this.minValue === Infinity) this.minValue = 0;
+        if (this.maxValue === -Infinity) this.maxValue = 1;
+    }
+
+    drawDataPoints() {
+        this.mapGroup.selectAll('.data-point').remove();
+
         const validCountries = Object.entries(this.countryData)
             .filter(([country, yearsData]) =>
                 yearsData[this.currentYear] !== undefined &&
                 this.countryMetadata[country]
             );
 
-        // Draw points for each country with data
-        this.svg.selectAll('.data-point')
+        this.mapGroup.selectAll('.data-point')
             .data(validCountries)
             .enter()
             .append('circle')
             .attr('class', 'data-point')
             .attr('cx', ([country]) => {
                 const meta = this.countryMetadata[country];
-                return this.projection([meta.longitude, meta.latitude])[0];
+                return this.projection([meta.longitude, meta.latitude])?.[0] || 0;
             })
             .attr('cy', ([country]) => {
                 const meta = this.countryMetadata[country];
-                return this.projection([meta.longitude, meta.latitude])[1];
+                return this.projection([meta.longitude, meta.latitude])?.[1] || 0;
             })
-            .attr('r', 8) // Base radius
+            .attr('r', 3)
             .attr('fill', ([country, yearsData]) => {
                 const value = yearsData[this.currentYear];
-                return getColorForValue(value, this.minValue, this.maxValue);
+                return this.getColorForValue(value, this.minValue, this.maxValue);
             })
             .attr('stroke', '#fff')
-            .attr('stroke-width', 1)
-            .on('mouseover', (event, [country, yearsData]) => {
-                const value = yearsData[this.currentYear];
-                const meta = this.countryMetadata[country];
+            .attr('stroke-width', 0.5)
+            .on('mouseover', this.handlePointMouseover.bind(this))
+            .on('mouseout', this.handlePointMouseout.bind(this));
 
-                // Highlight point
-                d3.select(event.currentTarget)
-                    .attr('r', 12)
-                    .attr('stroke-width', 2);
-
-                // Show tooltip
-                this.tooltip
-                    .style('opacity', 1)
-                    .html(`
-                        <strong>${country}</strong><br>
-                        ${this.metric.toUpperCase()} Emissions (${this.currentYear}): ${formatNumber(value)} Mt<br>
-                        Region: ${meta.region}<br>
-                        Capital: ${meta.capital}
-                    `)
-                    .style('left', `${event.pageX + 10}px`)
-                    .style('top', `${event.pageY - 28}px`);
-            })
-            .on('mouseout', (event) => {
-                // Reset point style
-                d3.select(event.currentTarget)
-                    .attr('r', 8)
-                    .attr('stroke-width', 1);
-
-                // Hide tooltip
-                this.tooltip.style('opacity', 0);
-            })
-            .attr('data-country', ([country]) => country)
-            .attr('data-value', ([country, yearsData]) => yearsData[this.currentYear]);
-
-        // Scale point size based on value
-        this.scalePointSizes();
+        this.updatePointSizes();
     }
 
-    scalePointSizes() {
-        const sizeScale = d3.scaleSqrt()
-            .domain([this.minValue, this.maxValue])
-            .range([5, 20]);
+    scalePointSizes(zoomLevel = 1) {
+        const baseSize = 3;
+        const scaleFactor = zoomLevel > 1 ? 100 / zoomLevel : 100;
 
-        this.svg.selectAll('.data-point')
+        this.mapGroup.selectAll('.data-point')
             .attr('r', d => {
                 const value = d[1][this.currentYear];
-                return sizeScale(value);
+                return Math.sqrt(value / this.maxValue * scaleFactor) + baseSize;
             });
     }
 
     addLegend() {
-        // Remove existing legend if any
         this.svg.selectAll('.legend').remove();
 
         const legendWidth = 200;
@@ -255,51 +333,151 @@ export class WorldMapVisualization {
 
         const legend = this.svg.append('g')
             .attr('class', 'legend')
-            .attr('transform', `translate(${this.width - legendWidth - 20}, 20)`);
+            .attr('transform', `translate(${this.width - legendWidth - 40}, 40)`);
 
-        // Create gradient
-        const defs = this.svg.append('defs');
-        const gradient = defs.append('linearGradient')
-            .attr('id', 'gradient')
+        const logMin = this.minValue > 0 ? Math.log10(this.minValue) : 0;
+        const logMax = Math.log10(this.maxValue);
+        const logRange = logMax - logMin;
+
+        const gradient = legend.append('defs')
+            .append('linearGradient')
+            .attr('id', 'color-gradient')
             .attr('x1', '0%')
-            .attr('y1', '0%')
-            .attr('x2', '100%')
-            .attr('y2', '0%');
+            .attr('x2', '100%');
 
-        gradient.append('stop')
-            .attr('offset', '0%')
-            .attr('stop-color', getColorForValue(this.minValue, this.minValue, this.maxValue));
+        [0, 0.5, 1].forEach(offset => {
+            const value = Math.pow(10, logMin + offset * logRange);
+            gradient.append('stop')
+                .attr('offset', `${offset * 100}%`)
+                .attr('stop-color', this.getColorForValue(value, this.minValue, this.maxValue));
+        });
 
-        gradient.append('stop')
-            .attr('offset', '100%')
-            .attr('stop-color', getColorForValue(this.maxValue, this.minValue, this.maxValue));
-
-        // Draw legend rectangle
         legend.append('rect')
+            .attr('x', 0)
             .attr('width', legendWidth)
             .attr('height', legendHeight)
-            .style('fill', 'url(#gradient)');
+            .style('fill', 'url(#color-gradient)')
+            .attr('stroke', '#000')
+            .attr('stroke-width', 0.5);
 
-        // Add legend text
         legend.append('text')
             .attr('x', 0)
             .attr('y', -5)
-            .text(`${this.metric.toUpperCase()} Emissions (Mt) - ${this.currentYear}`);
+            .text(`CO₂ Emissions (Mt) - ${this.currentYear}`)
+            .style('font-weight', 'bold')
+            .style('font-size', '12px');
 
-        legend.append('text')
-            .attr('x', 0)
-            .attr('y', legendHeight + 15)
-            .text(formatNumber(this.minValue));
+        const tickValues = [
+            this.minValue,
+            Math.pow(10, logMin + logRange * 0.5),
+            this.maxValue
+        ];
 
-        legend.append('text')
-            .attr('x', legendWidth)
-            .attr('y', legendHeight + 15)
-            .text(formatNumber(this.maxValue))
-            .style('text-anchor', 'end');
+        legend.selectAll('.legend-tick')
+            .data(tickValues)
+            .enter()
+            .append('line')
+            .attr('x1', d => ((Math.log10(d) - logMin) / logRange) * legendWidth)
+            .attr('x2', d => ((Math.log10(d) - logMin) / logRange) * legendWidth)
+            .attr('y1', legendHeight)
+            .attr('y2', legendHeight + 5)
+            .attr('stroke', '#000')
+            .attr('stroke-width', 1);
+
+        legend.selectAll('.legend-label')
+            .data(tickValues)
+            .enter()
+            .append('text')
+            .attr('x', d => ((Math.log10(d) - logMin) / logRange) * legendWidth)
+            .attr('y', legendHeight + 20)
+            .text(d => {
+                if (d >= 1000) {
+                    return d3.format('.2s')(d).replace('G', 'B');
+                }
+                return d3.format('.1f')(d);
+            })
+            .style('text-anchor', 'middle')
+            .style('font-size', '10px')
+            .style('pointer-events', 'none');
     }
 
+    handleCountryMouseover = (event, d) => {
+        const countryName = this.findCountryByFeature(d);
+        if (countryName) {
+            const meta = this.countryMetadata[countryName];
+            const value = this.countryData[countryName]?.[this.currentYear];
+
+            d3.select(event.currentTarget)
+                .attr('stroke-width', 2)
+                .attr('stroke', '#000');
+
+            this.tooltip
+                .style('opacity', 1)
+                .html(`
+                    <strong>${countryName}</strong><br>
+                    CO₂ Emissions (${this.currentYear}): ${value ? formatNumber(value) + ' Mt' : 'No data'}<br>
+                    Region: ${meta.region || 'Unknown'}<br>
+                    Capital: ${meta.capital || 'Unknown'}
+                `)
+                .style('left', `${event.pageX + 10}px`)
+                .style('top', `${event.pageY - 28}px`);
+        }
+    };
+
+    handleCountryMouseout = (event) => {
+        d3.select(event.currentTarget)
+            .attr('stroke-width', 0.5)
+            .attr('stroke', '#fff');
+        this.tooltip.style('opacity', 0);
+    };
+
+    handlePointMouseover = (event, [country, yearsData]) => {
+        const value = yearsData[this.currentYear];
+        const meta = this.countryMetadata[country];
+
+        d3.select(event.currentTarget)
+            .attr('r', d => Math.sqrt(d[1][this.currentYear] / this.maxValue * 30) * (1 / Math.max(1, Math.pow(this.currentTransform.k, 0.7)) * 1.5 + 2))
+                .attr('stroke-width', 1);
+
+        this.tooltip
+            .style('opacity', 1)
+            .html(`
+                <strong>${country}</strong><br>
+                CO₂ Emissions (${this.currentYear}): ${formatNumber(value)} Mt<br>
+                Region: ${meta.region || 'Unknown'}<br>
+                Capital: ${meta.capital || 'Unknown'}
+            `)
+            .style('left', `${event.pageX + 10}px`)
+            .style('top', `${event.pageY - 28}px`);
+    };
+
+    handlePointMouseout = (event) => {
+        const sizeFactor = 1 / Math.max(1, Math.pow(this.currentTransform.k, 0.7));
+        d3.select(event.currentTarget)
+            .attr('r', d => Math.sqrt(d[1][this.currentYear] / this.maxValue * 30) * sizeFactor + 2)
+            .attr('stroke-width', 0.5 + (1 / this.currentTransform.k));
+        this.tooltip.style('opacity', 0);
+    };
+
     updateMap() {
+        this.calculateMinMaxForCurrentYear();
+
+        this.mapGroup.selectAll('.country')
+            .attr('fill', d => {
+                const countryName = this.findCountryByFeature(d);
+
+                if (countryName && this.countryData[countryName]?.[this.currentYear]) {
+                    return this.getColorForValue(
+                        this.countryData[countryName][this.currentYear],
+                        this.minValue,
+                        this.maxValue
+                    );
+                }
+                return '#ddd';
+            });
+
         this.drawDataPoints();
+
         this.addLegend();
     }
 }
