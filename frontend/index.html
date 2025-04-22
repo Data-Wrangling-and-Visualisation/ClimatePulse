@@ -41,13 +41,22 @@
             </div>
         </section>
 
-        <section class="globe-section" id="globeSection">
-            <div class="container">
-                <h2>Global CO₂ Emissions</h2>
-                <div id="map-container" style="width: 80%; height: 1000px;"></div>
-                <!-- <div class="globe-controls">
-                            <div class="tooltip" id="globe-tooltip"></div>
-                        </div> -->
+        <section class="map-section" id="mapSection">
+            <div class="map-container">
+                <div class="map-header">
+                    <h2 class="map-title">Global CO₂ Emissions</h2>
+                    <div class="year-select-container">
+                        <label for="year-select" class="year-select-label">Select Year:</label>
+                        <div class="custom-select">
+                            <select id="year-select" class="year-select">
+                            </select>
+                            <span class="custom-arrow"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="map-wrapper">
+                    <div id="map-container"></div>
+                </div>
             </div>
         </section>
 

@@ -3,13 +3,12 @@ import { CO2Chart } from './charts/co2Chart.js';
 import { CountryStatsChart } from './charts/countryStatsChart.js';
 import { RenewableEnergyChart } from './charts/renewableEnergyChart.js';
 import { PredictionChart } from './charts/predictionChart.js';
-import { GlobeVisualization } from './globe/globe.js';
 import { WorldMapVisualization } from './map/map.js';
 
 class ClimatePulseApp {
     constructor() {
         this.initCharts();
-        this.initGlobe();
+        this.initMap();
         this.setupEventListeners();
     }
 
@@ -35,9 +34,8 @@ class ClimatePulseApp {
         );
     }
 
-    initGlobe() {
+    initMap() {
         this.map = new WorldMapVisualization('map-container');
-        // this.globe = new GlobeVisualization('globe-container');
     }
 
     openChartModal(chartType) {
@@ -106,7 +104,7 @@ class ClimatePulseApp {
         });
 
         document.getElementById('mapBtn').addEventListener('click', () => {
-            const targetSection = document.getElementById('globeSection');
+            const targetSection = document.getElementById('mapSection');
             const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navbarHeight;
             window.scrollTo({ top: targetPosition, behavior: 'smooth' });
         });

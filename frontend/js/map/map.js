@@ -11,6 +11,8 @@ export class WorldMapVisualization {
         this.metric = 'co2';
         this.currentTransform = d3.zoomIdentity;
 
+        this.yearSelect = d3.select('#year-select');
+
         this.zoomed = (event) => {
             this.currentTransform = event.transform;
             this.mapGroup.attr('transform', event.transform);
@@ -29,8 +31,7 @@ export class WorldMapVisualization {
         const logValue = value > 0 ? Math.log10(value) : logMin;
         const normalized = (logValue - logMin) / (logMax - logMin);
 
-        return d3.scaleSequential(d3.interpolatePlasma)
-            .domain([1, 0])(normalized);
+        return d3.interpolateReds(normalized * 0.9 + 0.1);
     }
 
     async initMap() {
@@ -47,15 +48,10 @@ export class WorldMapVisualization {
 
         this.mapGroup = this.svg.append('g');
 
-        this.yearSelect = d3.select(this.container)
-            .insert('div', ':first-child')
-            .attr('class', 'map-controls')
-            .append('select')
-            .attr('id', 'year-select')
-            .on('change', () => {
-                this.currentYear = parseInt(d3.select('#year-select').property('value'));
-                this.updateMap();
-            });
+        this.yearSelect.on('change', async () => {
+            this.currentYear = +this.yearSelect.node().value;
+            await this.updateMap();
+        });
 
         this.tooltip = d3.select('body').append('div')
             .attr('class', 'map-tooltip')
@@ -159,8 +155,8 @@ export class WorldMapVisualization {
         const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
 
         this.projection = d3.geoMercator()
-            .scale(this.width / 6)
-            .translate([this.width / 2, this.height / 2]);
+            .scale(this.width / 8)
+            .translate([this.width / 2.3, this.height / 1.5]);
 
         const path = d3.geoPath().projection(this.projection);
 
@@ -216,7 +212,6 @@ export class WorldMapVisualization {
             }
         }
 
-        console.log("failed", feature.properties.name);
         return null;
     }
 
@@ -349,7 +344,7 @@ export class WorldMapVisualization {
             const value = Math.pow(10, logMin + offset * logRange);
             gradient.append('stop')
                 .attr('offset', `${offset * 100}%`)
-                .attr('stop-color', this.getColorForValue(value, this.minValue, this.maxValue));
+                .attr('stop-color', d3.interpolateReds(offset * 0.9 + 0.1));
         });
 
         legend.append('rect')
