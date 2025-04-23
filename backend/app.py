@@ -139,6 +139,14 @@ def countries_data():
         return jsonify(countries_data)
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+    
+@app.route('/api/balance/<year>', methods=['GET'])
+def get_balance_data(year):
+    try:
+        data = loader.get_forest_data(year)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 if __name__ == '__main__':

@@ -60,6 +60,25 @@
             </div>
         </section>
 
+        <section class="burning-balance-section" data-viz="burning-balance">
+            <div class="container">
+                <h2>The Burning Balance</h2>
+                <div class="split-screen">
+                    <!-- Add ID to the actual Three.js target -->
+                    <div id="burning-balance-threejs" class="left-panel"></div>
+                    <div id="burning-balance-right" class="right-panel">
+                        <!-- ... -->
+                    </div>
+                </div>
+                <div id="shared-slider-container">
+                    <button id="decrement-year">-</button>
+                    <input type="range" id="shared-slider" min="2000" max="2020" value="2000" />
+                    <span id="year-display">2000</span>
+                    <button id="increment-year">+</button>
+                </div>
+            </div>
+        </section>
+
         <section class="visualization-grid container" id="climateDataSection">
             <h2>Explore Climate Data</h2>
             <div class="grid-container">

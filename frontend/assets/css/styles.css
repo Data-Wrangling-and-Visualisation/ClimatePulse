@@ -534,3 +534,32 @@ body {
 .chart-placeholder-text:hover {
     color: #f39c12;
 }
+
+
+.split-screen {
+    display: flex;
+    gap: 20px;
+}
+
+.left-panel, .right-panel {
+    flex: 1;
+    height: 500px;
+    width: 100%;
+    border: 1px solid #ccc;
+    position: relative;
+}
+
+#shared-slider-container {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+  }
+
+#decrement-year, #increment-year {
+    background-color: #0d2738;
+    color: white;
+    padding: 10px;
+    font-size: 24px;
+    border-radius: 5px;
+    cursor: pointer;
+}

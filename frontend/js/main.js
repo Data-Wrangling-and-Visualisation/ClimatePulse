@@ -4,12 +4,15 @@ import { CountryStatsChart } from './charts/countryStatsChart.js';
 import { RenewableEnergyChart } from './charts/renewableEnergyChart.js';
 import { PredictionChart } from './charts/predictionChart.js';
 import { WorldMapVisualization } from './map/map.js';
+import { BurningBalanceLeft } from './charts/burningBalance.js';
+import { BurningBalanceRight } from './charts/burningBalance.js';
 
 class ClimatePulseApp {
     constructor() {
         this.initCharts();
         this.initMap();
         this.setupEventListeners();
+        this.initViz();
     }
 
     initCharts() {
@@ -38,6 +41,61 @@ class ClimatePulseApp {
         this.map = new WorldMapVisualization('map-container');
     }
 
+    initViz() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Pass the SPECIFIC Three.js container ID
+                    const leftGlobe = new BurningBalanceLeft('burning-balance-threejs');
+                    const rightGlobe = new BurningBalanceRight('burning-balance-right');
+
+                    const sharedSlider = document.getElementById('shared-slider');
+                    const yearDisplay = document.getElementById('year-display');
+
+                    const plusBtn = document.getElementById('increment-year');
+                    const minusBtn = document.getElementById('decrement-year');
+
+                    let currentYear = 2000;
+                    
+                    // Function to update everything
+                    const updateAll = async (newYear) => {
+                        // Clamp year between 2000-2020
+                        newYear = Math.max(2000, Math.min(2020, newYear));
+                        currentYear = newYear;
+                        
+                        // Update UI
+                        sharedSlider.value = currentYear;
+                        yearDisplay.textContent = currentYear;
+                        
+                        // Update globes
+                        await leftGlobe.updateYear(currentYear);
+                        await rightGlobe.updateYear(currentYear);
+                    };
+                    
+                    // Slider change handler
+                    sharedSlider.addEventListener('input', (e) => {
+                        updateAll(parseInt(e.target.value));
+                    });
+                    
+                    // Plus button handler
+                    plusBtn.addEventListener('click', () => {
+                        updateAll(currentYear + 1);
+                    });
+                    
+                    // Minus button handler
+                    minusBtn.addEventListener('click', () => {
+                        updateAll(currentYear - 1);
+                    });
+
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+    
+        document.querySelectorAll('[data-viz="burning-balance"]').forEach(section => {
+            observer.observe(section);
+        });
+    }
     openChartModal(chartType) {
         const modal = document.getElementById('chartModal');
         const modalTitle = document.getElementById('modalTitle');

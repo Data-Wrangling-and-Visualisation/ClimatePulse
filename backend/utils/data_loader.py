@@ -2,6 +2,7 @@ import json
 from config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
 from utils.metric_mapper import get_metric_name, get_metric_key, get_nasa_metric_name, get_available_metrics
 from utils.train import predict_metrics
+import pandas as pd
 
 class ClimateDataLoader:
     def __init__(self):
@@ -157,4 +158,52 @@ class ClimateDataLoader:
     def get_predictions(self, n_years):
         self.load_predict_metrics(n_years)
         return self.predictions
+    
+    def get_forest_data(self, year):
+        path = '/app/data'
+        wb_csv = pd.read_csv(path + '/worldbank_data.csv')
+        # wb_csv = wb_csv[wb_csv['year'] >= 2000]
+        # wb_csv = wb_csv[wb_csv['year'] <= 2021]
+        wb_csv = wb_csv[wb_csv['year'] == int(year)]
+
+        wb_csv = wb_csv[~wb_csv['country'].isin(['Curacao', 'Gibraltar', 'Hong Kong SAR, China', 
+                                                 'Macao SAR, China', 'Montenegro', 'Serbia', 'South Sudan', 
+                                                 'Sudan', 'Sint Maarten (Dutch part)', 'Liechtenstein', 'Isle of Man', 
+                                                 'Channel Islands', 'Andorra', 'Monaco', 'San Marino', 'St. Martin (French part)',
+                                                 'West Bank and Gaza', 'Aruba', 'British Virgin Islands', 'Cayman Islands',
+                                                 'Channel Islands', 'Faroe Islands', 'French Polynesia', 'New Caledonia',
+                                                 'Turks and Caicos Islands'])]
+        unique_countries = wb_csv['country'].unique()
+        print('!'*100, wb_csv.isna().sum())
+
+        with open(path + '/countries_data.json', 'r') as f:
+            countries_data = json.load(f)[0]
+        country_coords = {}
+        for country in countries_data:
+            if country['name'] in unique_countries:
+                try:
+                    country_coords[country['name']] = [
+                        float(country['latitude']),
+                        float(country['longitude'])
+                    ]
+                except (ValueError, KeyError):
+                    continue
+
+        for col in ['carbon_dioxide', 'forests_ratio', 'air_pollution']:
+            min_val = wb_csv[col].min()
+            max_val = wb_csv[col].max()
+            wb_csv[col] = (wb_csv[col] - min_val) / (max_val - min_val)
+        
+        result = []
+        for _, row in wb_csv.iterrows():
+            country_name = row['country']
+            if country_name in country_coords:
+                result.append({
+                    "country": country_name,
+                    "co2_emissions": round(row['carbon_dioxide'], 3),
+                    "forest_area": round(row['forests_ratio'], 3),
+                    "air_pollution": round(row['air_pollution'], 3),
+                    "coordinates": country_coords[country_name]
+                })
+        return result
     
