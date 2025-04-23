@@ -6,6 +6,7 @@ import { PredictionChart } from './charts/predictionChart.js';
 import { WorldMapVisualization } from './map/map.js';
 import { BurningBalanceLeft } from './charts/burningBalance.js';
 import { BurningBalanceRight } from './charts/burningBalance.js';
+import { CombinedClimateChart } from './charts/combinedChart.js';
 
 class ClimatePulseApp {
     constructor() {
@@ -35,6 +36,10 @@ class ClimatePulseApp {
         this.predictionChart = new PredictionChart(
             document.querySelector('[data-chart="prediction"] .chart-placeholder')
         );
+        this.predictionChart = new CombinedClimateChart(
+            document.querySelector('[data-chart="all"] .chart-placeholder')
+        );
+
     }
 
     initMap() {
