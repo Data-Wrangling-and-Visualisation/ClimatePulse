@@ -45,7 +45,7 @@ class PredictionChart {
 
         try {
             // Fetch prediction data for the next 50 years
-            const nYears = 10; // You can adjust this value or make it configurable
+            const nYears = 20; // You can adjust this value or make it configurable
             const url = `/api/predict/${nYears}`;
             const predictionDataAll = await fetchData(url);
 
