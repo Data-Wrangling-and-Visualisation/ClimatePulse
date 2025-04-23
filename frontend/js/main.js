@@ -107,10 +107,6 @@ class ClimatePulseApp {
         const modalChartContainer = document.getElementById('modalChartContainer');
 
         switch (chartType) {
-            case 'temperature':
-                modalTitle.textContent = 'Global Temperature Trends';
-                this.temperatureChart.renderModalContent();
-                break;
             case 'co2':
                 modalTitle.textContent = 'CO₂ Emissions Analysis';
                 this.co2Chart.renderModalContent();
@@ -118,10 +114,6 @@ class ClimatePulseApp {
             case 'country':
                 modalTitle.textContent = 'Country Climate Statistics';
                 this.countryStatsChart.renderModalContent();
-                break;
-            case 'renewable':
-                modalTitle.textContent = 'Renewable Energy Leaders';
-                this.renewableEnergyChart.renderModalContent();
                 break;
             case 'prediction':
                 modalTitle.textContent = 'Future Climate Predictions';
@@ -185,7 +177,7 @@ class ClimatePulseApp {
             e.target.reset();
         });
 
-        document.querySelectorAll('.grid-item').forEach(item => {
+        document.querySelectorAll('.modal-check').forEach(item => {
             item.addEventListener('click', (e) => {
                 // Don't trigger if clicking on the button itself
                 if (e.target.classList.contains('expand-btn')) return;
