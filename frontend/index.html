@@ -64,8 +64,16 @@
         <section class="burning-balance-section" data-viz="burning-balance" id="burningBalanceSection">
             <div class="container">
                 <h2>The Burning Balance</h2>
-                <h3>2 globes demonstrate the co2 emissions amount and forest area on our planet.</h3>
-                <p>To see changes over past 20 years, change the slider's value below.</p>
+                <div class="globe-headers">
+                    <div class="co-header">
+                        <h3>CO2 emissions</h3>
+                        <p>The bigger a tower and the more it is red-colored - the more emissions</p>
+                    </div>
+                    <div class="forest-header">
+                        <h3>Forest Area</h3>
+                        <p>The bigger a circle and more green-colored - the more area of forests</p>
+                    </div>
+                </div>
                 <div class="split-screen">
                     <!-- Add ID to the actual Three.js target -->
                     <div id="burning-balance-threejs" class="left-panel"></div>

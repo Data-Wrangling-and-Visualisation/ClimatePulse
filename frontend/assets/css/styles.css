@@ -231,7 +231,17 @@ body {
     color: white;
     padding: 5px;
 }
+.burning-balance-section {
+    text-align: center;
+}
 
+.globe-headers {
+    display: flex;
+}
+.co-header, .forest-header {
+    width: 900px;
+    padding-left: 10px;
+}
 .year-select-container {
     display: flex;
     align-items: center;
