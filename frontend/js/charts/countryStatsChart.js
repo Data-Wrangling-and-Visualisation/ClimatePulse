@@ -112,26 +112,27 @@ class CountryStatsChart {
     updateModalChart(svg, years, values, width, height, metric) {
         svg.selectAll('*').remove();
         let textPlaceholder;
+        let yAxisText;
+        let toolText;
         console.log(metric);
         if (metric == 'air_pollution') {
             textPlaceholder = 'The growth of air pollution (micrograms per cubic meter)';
+            yAxisText = 'Air pollution (mcg per m^3)';
+            toolText = 'Pollution: ';
         } else if (metric == 'renewable') {
             textPlaceholder = 'The growth of percentage of renewable energy';
+            yAxisText = 'Percent of renewable energy';
+            toolText = 'Renewable energy percent: ';
         } else if (metric == 'forest') {
             textPlaceholder = 'The growth of forest area';
+            yAxisText = 'Forest area (km²)';
+            toolText = 'km²: ';
         } else {
             textPlaceholder = 'The growth of the emissions ppm value';
-        }
-        let yAxisText;
-        if (metric == 'air_pollution') {
-            yAxisText = 'Air pollution (mcg per m^3)';
-        } else if (metric == 'renewable') {
-            yAxisText = 'Percent of renewable energy';
-        } else if (metric == 'forest') {
-            yAxisText = 'Firest area (km₂)';
-        } else {
             yAxisText = 'CO₂ Emissions (ppm)';
+            toolText = 'PPM: ';
         }
+
         this.changeText.innerText = `${textPlaceholder} from ${years[0]} till ${years[years.length - 1]} is ${values[values.length - 1] - values[0]}`;
         const xScale = d3.scaleTime()
             .domain(d3.extent(years.map(year => new Date(year, 0, 1))))
@@ -194,7 +195,7 @@ class CountryStatsChart {
                 tooltip.transition()
                     .duration(200)
                     .style('opacity', .9);
-                tooltip.html(formatTooltip(d, 'emissions'))
+                tooltip.html(formatTooltip(d, toolText))
                     .style('left', (event.pageX + 10) + 'px')
                     .style('top', (event.pageY - 28) + 'px')
                     .style('z-index', 10000);
