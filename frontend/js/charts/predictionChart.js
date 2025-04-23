@@ -38,6 +38,7 @@ class PredictionChart {
     }
 
     async renderModalContent() {
+        console.log('!!!');
         d3.select(this.modalContainer).selectAll('*').remove();
         const modalWidth = 800;
         const modalHeight = 400;

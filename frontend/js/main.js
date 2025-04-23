@@ -36,7 +36,7 @@ class ClimatePulseApp {
         this.predictionChart = new PredictionChart(
             document.querySelector('[data-chart="prediction"] .chart-placeholder')
         );
-        this.predictionChart = new CombinedClimateChart(
+        this.combinedChart = new CombinedClimateChart(
             document.querySelector('[data-chart="all"] .chart-placeholder')
         );
 
@@ -104,7 +104,6 @@ class ClimatePulseApp {
     openChartModal(chartType) {
         const modal = document.getElementById('chartModal');
         const modalTitle = document.getElementById('modalTitle');
-        const modalChartContainer = document.getElementById('modalChartContainer');
 
         switch (chartType) {
             case 'co2':
@@ -117,11 +116,10 @@ class ClimatePulseApp {
                 break;
             case 'prediction':
                 modalTitle.textContent = 'Future Climate Predictions';
+                console.log(this.predictionChart);
                 this.predictionChart.renderModalContent();
                 break;
-            
         }
-
         modal.style.display = 'block';
     }
 
@@ -180,7 +178,7 @@ class ClimatePulseApp {
         document.querySelectorAll('.modal-check').forEach(item => {
             item.addEventListener('click', (e) => {
                 // Don't trigger if clicking on the button itself
-                if (e.target.classList.contains('expand-btn')) return;
+                // if (e.target.classList.contains('expand-btn')) return;
                 
                 const chartType = item.getAttribute('data-chart');
                 this.openChartModal(chartType);
