@@ -90,7 +90,7 @@ export class CombinedClimateChart {
 
     renderChart() {
         // Clear any existing content in the container
-        d3.select(this.container).selectAll('*').remove();
+        d3.select(this.container).html('');
 
         // Append SVG to the container
         const svg = d3.select(this.container)
@@ -134,6 +134,8 @@ export class CombinedClimateChart {
             .style('text-anchor', 'middle')
             .text('Normalized values');
 
+        const metricGroups = {};
+
         // Draw lines and shaded areas for each metric
         Object.keys(this.data).forEach(metric => {
             const lineData = this.data[metric].years.map((year, i) => ({
@@ -152,30 +154,35 @@ export class CombinedClimateChart {
                 .y1(d => yScale(d.value))
                 .curve(d3.curveBasis);
 
+            metricGroups[metric] = svg.append('g')
+                .attr('class', `metric-group ${metric}-group`);
+
             // Add shaded area
-            svg.append('path')
+            metricGroups[metric].append('path')
                 .datum(lineData)
+                .attr('class', 'metric-area')
                 .attr('fill', this.colors[metric])
                 .attr('fill-opacity', 0.3)
                 .attr('d', area);
 
             // Add line
-            svg.append('path')
-                .datum(lineData)
-                .attr('fill', 'none')
-                .attr('stroke', this.colors[metric])
-                .attr('stroke-width', 2)
-                .attr('d', line);
+            metricGroups[metric].append('path')
+            .datum(lineData)
+            .attr('class', 'metric-line')
+            .attr('fill', 'none')
+            .attr('stroke', this.colors[metric])
+            .attr('stroke-width', 2)
+            .attr('d', line);
 
-            // Add dots
-            svg.selectAll(`.dot-${metric}`)
-                .data(lineData)
-                .enter().append('circle')
-                .attr('class', `dot-${metric}`)
-                .attr('cx', d => xScale(d.year))
-                .attr('cy', d => yScale(d.value))
-                .attr('r', 3)
-                .attr('fill', this.colors[metric]);
+        // Add dots
+        metricGroups[metric].selectAll(`.dot-${metric}`)
+            .data(lineData)
+            .enter().append('circle')
+            .attr('class', `dot dot-${metric}`)
+            .attr('cx', d => xScale(d.year))
+            .attr('cy', d => yScale(d.value))
+            .attr('r', 3)
+            .attr('fill', this.colors[metric]);
         });
 
         // Add legend
@@ -184,7 +191,17 @@ export class CombinedClimateChart {
 
         Object.keys(this.colors).forEach((metric, i) => {
             const legendRow = legend.append('g')
-                .attr('transform', `translate(0, ${i * 20})`);
+                .attr('transform', `translate(0, ${i * 20})`)
+                .attr('class', `legend-item ${metric}-legend`)
+                .style('cursor', 'pointer')
+                .on('click', () => {
+                    // Toggle visibility
+                    const isVisible = metricGroups[metric].style('display') !== 'none';
+                    metricGroups[metric].style('display', isVisible ? 'none' : 'block');
+                    
+                    // Update legend opacity to indicate state
+                    d3.select(`.${metric}-legend`).style('opacity', isVisible ? 0.5 : 1);
+                });
 
             legendRow.append('rect')
                 .attr('width', 10)
