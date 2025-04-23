@@ -5,9 +5,9 @@ class RenewableEnergyChart {
         this.container = container;
         this.modalContainer = document.getElementById('modalChartContainer');
 
-        this.margin = { top: 60, right: 180, bottom: 100, left: 50 };
-        this.width = 600 - this.margin.left - this.margin.right;
-        this.height = 400 - this.margin.top - this.margin.bottom;
+        this.margin = { top: 60, right: 180, bottom: 130, left: 50 };
+        this.width = 1180 - this.margin.left - this.margin.right;
+        this.height = 470 - this.margin.top - this.margin.bottom;
         this.data = null;
         this.changeText = document.getElementById("change-trend");
         

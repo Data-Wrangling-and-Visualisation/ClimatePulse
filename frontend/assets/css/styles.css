@@ -223,6 +223,15 @@ body {
 
 }
 
+.clickButton {
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #7f8c8d;
+    color: white;
+    padding: 5px;
+}
+
 .year-select-container {
     display: flex;
     align-items: center;
