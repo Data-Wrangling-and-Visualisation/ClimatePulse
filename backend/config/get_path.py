@@ -15,3 +15,6 @@ def get_nasa_data_path():
 
 def get_worldbank_data_path():
     return os.path.join(get_data_path(), 'worldbank_data.json')
+
+def get_worldbank_csv_data_path():
+    return os.path.join(get_data_path(), 'worldbank_data.csv')

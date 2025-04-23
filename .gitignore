@@ -4,3 +4,4 @@ backend/utils/__pycache__/*
 ClimatePulseApp.egg-info/*
 data_collection/data_collection/__pycache__/*
 data_collection/data_collection/spiders/__pycache__/*
+.venv/

@@ -154,6 +154,12 @@ class ClimatePulseApp {
 
         const navbarHeight = document.querySelector('.main-nav').offsetHeight;
 
+        document.getElementById('balanceBtn').addEventListener('click', () => {
+            const targetSection = document.getElementById('burningBalanceSection');
+            const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navbarHeight;
+            window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+        });
+
         document.getElementById('climateBtn').addEventListener('click', () => {
             const targetSection = document.getElementById('climateDataSection');
             const targetPosition = targetSection.getBoundingClientRect().top + window.scrollY - navbarHeight;

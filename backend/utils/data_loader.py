@@ -1,5 +1,5 @@
 import json
-from config.get_path import get_nasa_data_path, get_worldbank_data_path, get_country_data_path
+from config.get_path import get_worldbank_csv_data_path, get_nasa_data_path, get_worldbank_data_path, get_country_data_path
 from utils.metric_mapper import get_metric_name, get_metric_key, get_nasa_metric_name, get_available_metrics
 from utils.train import predict_metrics
 import pandas as pd
@@ -8,6 +8,7 @@ class ClimateDataLoader:
     def __init__(self):
         self.nasa_path = get_nasa_data_path()
         self.wb_path = get_worldbank_data_path()
+        self.wb_csv_path = get_worldbank_csv_data_path()
         self.country_path = get_country_data_path()
         self.load_nasa_data()
         self.load_worldbank_data()
@@ -160,23 +161,29 @@ class ClimateDataLoader:
         return self.predictions
     
     def get_forest_data(self, year):
-        path = '/app/data'
-        wb_csv = pd.read_csv(path + '/worldbank_data.csv')
+        # path = '/app/data'
+        # wb_csv = pd.read_csv(path + '/worldbank_data.csv')
+
+        with open(self.wb_csv_path) as f:
+            self.wb_csv_raw_data = pd.read_csv(f)
+
+
+        wb_csv = self.wb_csv_raw_data
         # wb_csv = wb_csv[wb_csv['year'] >= 2000]
         # wb_csv = wb_csv[wb_csv['year'] <= 2021]
         wb_csv = wb_csv[wb_csv['year'] == int(year)]
 
         wb_csv = wb_csv[~wb_csv['country'].isin(['Curacao', 'Gibraltar', 'Hong Kong SAR, China', 
-                                                 'Macao SAR, China', 'Montenegro', 'Serbia', 'South Sudan', 
-                                                 'Sudan', 'Sint Maarten (Dutch part)', 'Liechtenstein', 'Isle of Man', 
-                                                 'Channel Islands', 'Andorra', 'Monaco', 'San Marino', 'St. Martin (French part)',
-                                                 'West Bank and Gaza', 'Aruba', 'British Virgin Islands', 'Cayman Islands',
-                                                 'Channel Islands', 'Faroe Islands', 'French Polynesia', 'New Caledonia',
-                                                 'Turks and Caicos Islands'])]
+                                                'Macao SAR, China', 'Montenegro', 'Serbia', 'South Sudan', 
+                                                'Sudan', 'Sint Maarten (Dutch part)', 'Liechtenstein', 'Isle of Man', 
+                                                'Channel Islands', 'Andorra', 'Monaco', 'San Marino', 'St. Martin (French part)',
+                                                'West Bank and Gaza', 'Aruba', 'British Virgin Islands', 'Cayman Islands',
+                                                'Channel Islands', 'Faroe Islands', 'French Polynesia', 'New Caledonia',
+                                                'Turks and Caicos Islands'])]
         unique_countries = wb_csv['country'].unique()
         print('!'*100, wb_csv.isna().sum())
 
-        with open(path + '/countries_data.json', 'r') as f:
+        with open(self.country_path) as f:
             countries_data = json.load(f)[0]
         country_coords = {}
         for country in countries_data:
