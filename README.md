@@ -8,14 +8,39 @@ To tun the app you can simple clone our repository and run ``docker-compose up -
 
 ## Visualizations
 
-![](./checkpoints/pictures/temp_co2_charts.jpg)
+![](./checkpoints/pictures/header.jpg)
 
-![](./checkpoints/pictures/country_renew_charts.jpg)
+### Heatmap shows CO<sub>2</sub> emissions by countries
+
+![](./checkpoints/pictures/CO2_heatmap.jpeg)
+
+### Interactive globes with CO<sub>2</sub> and forests data
+
+![](./checkpoints/pictures/globes_visualization.jpeg)
+
+### Graph illustrating temperature trends spanning more than 140 years
+
+![](./checkpoints/pictures/temperature_trands.jpeg)
+
+### CO<sub>2</sub> emissions graph with available counrty/region selection
+
+![](./checkpoints/pictures/CO2_emissions.jpeg)
+
+![](./checkpoints/pictures/CO2_interactive.jpeg)
+
+### Correlations of different metrics
+
+![](./checkpoints/pictures/correlations.jpeg)
+
+### Graph featuring options to select regions and metrics
 
 ![](./checkpoints/pictures/country_chart_openes.jpg)
 
-![](./checkpoints/pictures/globe_final.jpg)
+### Renewable energy top
 
+![](./checkpoints/pictures/renewable_energy_top.jpeg)
+
+![](./checkpoints/pictures/footer.jpeg)
 
 ## Project Description
 
@@ -62,14 +87,6 @@ The application will tell the story of how climate change has evolved globally, 
    - **Exploration:** Matplotlib for EDA.  
    - **Delivery:** Flask API to serve processed JSON data.  
    - **Visualization:** Interactive panels built with Three.js and D3.js.  
-
-### Proposed Visualizations  
-
-1. The Temperature Warming over the World plot.
-2. CO2 emissions plots: 1st plot - linechart with average global temperature growth, 2nd plot - linechart for a distinct country (option to choose a country) + shadowed kde plot of CO2 intercecting with shadowed kde plot of global temperature (they will intersect a lot to demonstred the correlation) 
-3. Global Statictics: the plot with ALL available metrics from both datasets per each country. The user must choose the country first, and then the plot will show him all metrics for the chosen country (yearly temperature, air pollution, percent of forests, etc.). + short summary (the co2 grows, air pollution grows, etc.) compute it after the plot generation
-4. Renewable Energy plots to see top countries: bar chart showing top 10 countries by renewable energy usage over the past 10 years. The user also can switch to the worst countries in this field, or check the value (average over last 10 year) of renewable energy ratio in his country.
-5. 3D globe which is covered with world countries map. Each country should be colored with different shades depending on how many CO2 emissions it produces. Hovering them we can see the exact value.
 
 ### Interactive Features  
 - **Interactive Charts:** Points hovering allows to see more detailed information.
